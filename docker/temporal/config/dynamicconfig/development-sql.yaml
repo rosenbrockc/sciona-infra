@@ -1,0 +1,3 @@
+# Temporal dynamic configuration overrides for development.
+# Empty map means "use all defaults."
+{}

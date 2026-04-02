@@ -1,0 +1,6 @@
+include:
+  - proxy/compose.yml
+  - authentik/compose.yml
+  - temporal/compose.yml
+  - opa/compose.yml
+  - telemetry/compose.yml

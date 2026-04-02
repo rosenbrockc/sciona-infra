@@ -1,0 +1,39 @@
+{
+  "tier_limits": {
+    "standard": {
+      "max_escrow": 10000.0,
+      "verification_budget": 5,
+      "max_submissions": 50
+    },
+    "heavy": {
+      "max_escrow": 50000.0,
+      "verification_budget": 10,
+      "max_submissions": 100
+    },
+    "gpu": {
+      "max_escrow": 100000.0,
+      "verification_budget": 15,
+      "max_submissions": 100
+    }
+  },
+  "fee_schedule": {
+    "platform_pct": 5,
+    "architect_pct": 65,
+    "originator_pct": 30,
+    "cancellation_no_submissions_pct": 10,
+    "cancellation_with_submissions_pct": 25
+  },
+  "identity_tiers": {
+    "contributor": {
+      "can_create_bounty": false,
+      "can_submit": true,
+      "can_fund": false
+    },
+    "payee": {
+      "can_create_bounty": true,
+      "can_submit": true,
+      "can_fund": true
+    }
+  },
+  "cancellable_statuses": ["draft", "open", "submitted"]
+}

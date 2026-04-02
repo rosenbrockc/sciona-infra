@@ -1,0 +1,63 @@
+BEGIN;
+
+DROP TRIGGER IF EXISTS trg_publishable_references ON public.atom_references;
+DROP TRIGGER IF EXISTS trg_publishable_rollups ON public.atom_audit_rollups;
+DROP TRIGGER IF EXISTS trg_publishable_descriptions ON public.atom_descriptions;
+DROP TRIGGER IF EXISTS trg_publishable_parameters ON public.atom_parameters;
+DROP TRIGGER IF EXISTS trg_publishable_io_specs ON public.atom_io_specs;
+DROP TRIGGER IF EXISTS trg_effective_tier_memberships ON public.user_memberships;
+DROP TRIGGER IF EXISTS trg_effective_tier_org_memberships ON public.organization_memberships;
+DROP TRIGGER IF EXISTS trg_effective_tier_roles ON public.user_role_assignments;
+DROP TRIGGER IF EXISTS trg_effective_tier_grants ON public.user_entitlement_grants;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+DROP FUNCTION IF EXISTS public.refresh_atom_publishable();
+DROP FUNCTION IF EXISTS public.atom_is_publishable(UUID);
+DROP FUNCTION IF EXISTS public.refresh_user_effective_tier();
+DROP FUNCTION IF EXISTS public.user_effective_entitlement(UUID);
+DROP FUNCTION IF EXISTS public.is_contributor(UUID);
+DROP FUNCTION IF EXISTS public.handle_new_user();
+
+DROP MATERIALIZED VIEW IF EXISTS public.atom_audit_latest;
+
+DROP TABLE IF EXISTS public.discipline_repos CASCADE;
+DROP TABLE IF EXISTS public.behavioral_equivalence_flags CASCADE;
+DROP TABLE IF EXISTS public.fuzz_results CASCADE;
+DROP TABLE IF EXISTS public.benchmark_votes CASCADE;
+DROP TABLE IF EXISTS public.benchmark_suites CASCADE;
+DROP TABLE IF EXISTS public.settlement_payouts CASCADE;
+DROP TABLE IF EXISTS public.dataset_splits CASCADE;
+DROP TABLE IF EXISTS public.execution_receipts CASCADE;
+DROP TABLE IF EXISTS public.principal_targets CASCADE;
+DROP TABLE IF EXISTS public.bounty_best_scores CASCADE;
+DROP TABLE IF EXISTS public.verification_runs CASCADE;
+DROP TABLE IF EXISTS public.verification_budgets CASCADE;
+DROP TABLE IF EXISTS public.payouts CASCADE;
+DROP TABLE IF EXISTS public.submissions CASCADE;
+DROP TABLE IF EXISTS public.bounties CASCADE;
+DROP TABLE IF EXISTS public.atom_benchmarks CASCADE;
+DROP TABLE IF EXISTS public.atom_audit_rollups CASCADE;
+DROP TABLE IF EXISTS public.atom_audit_evidence CASCADE;
+DROP TABLE IF EXISTS public.atom_verification_matches CASCADE;
+DROP TABLE IF EXISTS public.atom_uncertainty_estimates CASCADE;
+DROP TABLE IF EXISTS public.atom_references CASCADE;
+DROP TABLE IF EXISTS public.references_registry CASCADE;
+DROP TABLE IF EXISTS public.atom_descriptions CASCADE;
+DROP TABLE IF EXISTS public.atom_parameters CASCADE;
+DROP TABLE IF EXISTS public.atom_io_specs CASCADE;
+DROP TABLE IF EXISTS public.hyperparams CASCADE;
+DROP TABLE IF EXISTS public.atom_authors CASCADE;
+DROP TABLE IF EXISTS public.atom_versions CASCADE;
+DROP TABLE IF EXISTS public.atoms CASCADE;
+DROP TABLE IF EXISTS public.atom_source_repositories CASCADE;
+DROP TABLE IF EXISTS public.contribution_events CASCADE;
+DROP TABLE IF EXISTS public.user_entitlement_grants CASCADE;
+DROP TABLE IF EXISTS public.user_memberships CASCADE;
+DROP TABLE IF EXISTS public.organization_memberships CASCADE;
+DROP TABLE IF EXISTS public.organization_email_domains CASCADE;
+DROP TABLE IF EXISTS public.organizations CASCADE;
+DROP TABLE IF EXISTS public.user_role_assignments CASCADE;
+DROP TABLE IF EXISTS public.roles CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;
+
+COMMIT;

@@ -1,0 +1,27 @@
+services:
+  opa:
+    image: openpolicyagent/opa:0.67.0-rootless
+    container_name: sciona-opa
+    restart: always
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    volumes:
+      - ./policies:/policies:ro
+    ports:
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:8181/health?plugins >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - backend-internal
+
+networks:
+  backend-internal:
+    external: true
