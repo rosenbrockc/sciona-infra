@@ -17,6 +17,8 @@ services:
 
 networks:
   proxy-tier:
+    name: ${SCIONA_PROXY_TIER_NETWORK:-proxy-tier}
     external: true
   backend-internal:
+    name: ${SCIONA_BACKEND_NETWORK:-backend-internal}
     external: true

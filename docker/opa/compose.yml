@@ -24,4 +24,5 @@ services:
 
 networks:
   backend-internal:
+    name: ${SCIONA_BACKEND_NETWORK:-backend-internal}
     external: true

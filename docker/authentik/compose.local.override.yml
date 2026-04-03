@@ -1,0 +1,4 @@
+services:
+  server:
+    ports:
+      - "${AUTHENTIK_LOCAL_BIND:-9000}:9000"

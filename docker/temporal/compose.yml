@@ -77,6 +77,8 @@ networks:
   temporal-internal:
     internal: true
   backend-internal:
+    name: ${SCIONA_BACKEND_NETWORK:-backend-internal}
     external: true
   proxy-tier:
+    name: ${SCIONA_PROXY_TIER_NETWORK:-proxy-tier}
     external: true

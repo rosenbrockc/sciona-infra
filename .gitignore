@@ -9,3 +9,5 @@ supabase/.branches/
 supabase/.temp/
 .env
 .DS_Store
+
+docker/.env.local
