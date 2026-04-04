@@ -492,11 +492,18 @@ async def _seed_publishable_atom(conn: Any) -> dict[str, str]:
     )
     assert any(str(row["atom_id"]) == atom_id for row in needs_embedding)
 
+    unique_primary = 1.0 + (int(suffix[:4], 16) / 65535.0)
+    unique_secondary = 0.1 + (int(suffix[4:], 16) / 65535.0)
+
     await conn.execute(
         """
         WITH embedding AS (
             SELECT ARRAY(
-                SELECT CASE WHEN i = 1 THEN 1.0::float8 ELSE 0.001::float8 END
+                SELECT CASE
+                    WHEN i = 1 THEN $4::float8
+                    WHEN i = 2 THEN $5::float8
+                    ELSE 0.001::float8
+                END
                 FROM generate_series(1, 1536) AS g(i)
             )::extensions.vector(1536) AS v
         )
@@ -523,6 +530,8 @@ async def _seed_publishable_atom(conn: Any) -> dict[str, str]:
         atom_id,
         fqdn,
         description,
+        unique_primary,
+        unique_secondary,
     )
 
     return {
