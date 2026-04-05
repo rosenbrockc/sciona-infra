@@ -130,12 +130,14 @@ def create_app() -> FastAPI:
     from sciona_infra.api.routers.catalog import router as catalog_router
     from sciona_infra.api.routers.dashboard import router as dashboard_router
     from sciona_infra.api.routers.registry import router as registry_router
+    from sciona_infra.api.routers.badges import router as badges_router
+    from sciona_infra.api.routers.referrals import router as referrals_router
     from sciona_infra.api.routers.scim import router as scim_router
     from sciona_infra.api.routers.verification import router as verification_router
 
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -146,6 +148,8 @@ def create_app() -> FastAPI:
     application.include_router(catalog_router, prefix="/catalog", tags=["catalog"])
     application.include_router(verification_router, tags=["verification"])
     application.include_router(dashboard_router, tags=["dashboard"])
+    application.include_router(badges_router, tags=["badges"])
+    application.include_router(referrals_router, tags=["referrals"])
     application.include_router(scim_router, tags=["scim"])
 
     setup_telemetry(application)

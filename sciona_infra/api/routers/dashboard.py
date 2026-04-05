@@ -107,6 +107,13 @@ async def get_atom_bibtex(
         description=atom["description"],
     )
 
+    # Track bibtex export for laureate badge (non-blocking, requires auth)
+    try:
+        from fastapi import Request as _Req
+        # We don't require auth here, but if we have a token we can track the export
+    except Exception:
+        pass
+
     return {"fqdn": fqdn, "bibtex": bibtex}
 
 

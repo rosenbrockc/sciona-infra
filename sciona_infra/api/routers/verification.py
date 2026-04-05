@@ -184,9 +184,26 @@ async def get_settlement(
         .order("amount", desc=True)
         .execute()
     )
-    return {
+    settlement = {
         "bounty_id": str(bounty_id),
         "status": "settled",
         "escrow_amount": float(row["escrow_amount"]),
         "payouts": payouts_result.data or [],
     }
+
+    # Badge + referral hooks for all payout recipients (non-blocking)
+    try:
+        from sciona_infra.api.badges import evaluate_badges_for_user, check_referral_value
+        for payout in payouts_result.data or []:
+            recipient = str(payout.get("recipient_id", ""))
+            if recipient:
+                role = payout.get("role", "")
+                if role == "originator":
+                    await evaluate_badges_for_user(supabase, recipient, "payout_settled")
+                elif role == "architect":
+                    await evaluate_badges_for_user(supabase, recipient, "bounty_won")
+                    await check_referral_value(supabase, recipient, "bounty_won")
+    except Exception:
+        pass
+
+    return settlement

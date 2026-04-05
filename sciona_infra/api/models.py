@@ -209,3 +209,79 @@ class PaginatedResponse(BaseModel):
     total: int = 0
     limit: int = 50
     offset: int = 0
+
+
+# ---------------------------------------------------------------------------
+# Badges
+# ---------------------------------------------------------------------------
+
+
+class BadgeDefinitionResponse(BaseModel):
+    badge_id: str
+    display_name: str
+    description: str = ""
+    track: str
+    icon_slug: str = ""
+    is_hidden: bool = False
+    sort_order: int = 0
+
+
+class BadgeMilestoneResponse(BaseModel):
+    milestone_id: str
+    badge_id: str
+    tier: str
+    threshold_value: float
+    threshold_unit: str = "count"
+
+
+class UserBadgeResponse(BaseModel):
+    id: UUID
+    user_id: UUID
+    milestone_id: str
+    awarded_at: datetime
+    progress_value: float = 0
+
+
+class BadgeProgressResponse(BaseModel):
+    user_id: UUID
+    badge_id: str
+    current_value: float = 0
+    highest_awarded_tier: str | None = None
+    updated_at: datetime
+
+
+class BadgeTelemetryResponse(BaseModel):
+    badge_id: str
+    current_value: float = 0
+    rarity_pct: float = 100.0
+    holder_count: int = 0
+
+
+class GrandmasterResponse(BaseModel):
+    user_id: str
+    tracks: dict[str, bool] = Field(default_factory=dict)
+    is_grandmaster: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Referrals
+# ---------------------------------------------------------------------------
+
+
+class ReferralCodeResponse(BaseModel):
+    code: str
+    referrer_id: UUID
+    created_at: datetime
+    expires_at: datetime | None = None
+    max_uses: int = 50
+    use_count: int = 0
+
+
+class ReferralResponse(BaseModel):
+    id: UUID
+    referrer_id: UUID
+    referee_id: UUID
+    code: str
+    created_at: datetime
+    first_value_event: str | None = None
+    value_created_at: datetime | None = None

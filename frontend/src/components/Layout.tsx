@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { api } from "../api/client";
+import type { GrandmasterStatus } from "../api/types";
+import GrandmasterRing from "./GrandmasterRing";
 
 const links = [
   { to: "/", label: "Home" },
   { to: "/bounties", label: "Bounties" },
   { to: "/atoms", label: "Atoms" },
   { to: "/leaderboard", label: "Leaderboard" },
+  { to: "/badges", label: "Badges" },
   { to: "/esg", label: "ESG Dashboard" },
 ];
 
@@ -14,6 +18,13 @@ export default function Layout() {
   const { user, loading, login, loginEnterprise, logout } = useAuth();
   const [orgSlug, setOrgSlug] = useState("");
   const [error, setError] = useState("");
+  const [grandmaster, setGrandmaster] = useState<GrandmasterStatus | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      api.getGrandmasterStatus(user.user_id).then(setGrandmaster).catch(() => {});
+    }
+  }, [user]);
 
   async function handleLogin() {
     setError("");
@@ -74,11 +85,13 @@ export default function Layout() {
             <div className="space-y-2">
               <div className="flex items-center gap-2 min-w-0">
                 {user.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt={user.display_name}
-                    className="h-7 w-7 rounded-full border border-border"
-                  />
+                  <GrandmasterRing status={grandmaster}>
+                    <img
+                      src={user.avatar_url}
+                      alt={user.display_name}
+                      className="h-7 w-7 rounded-full border border-border"
+                    />
+                  </GrandmasterRing>
                 ) : null}
                 <div className="min-w-0">
                   <p className="text-sm text-gray-200 truncate">

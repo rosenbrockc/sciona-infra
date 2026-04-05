@@ -2,21 +2,28 @@ import type {
   AtomDetailResponse,
   AtomSummaryResponse,
   AtomVersionResponse,
+  BadgeDefinition,
+  BadgeProgress,
+  BadgeTelemetry,
   BenchmarkRecord,
   BountyResponse,
   BountySummaryResponse,
   ComputePreserved,
+  GrandmasterStatus,
   LeaderboardEntry,
   OriginatorImpact,
   PaginatedResponse,
+  Referral,
+  ReferralCode,
   SettlementInfo,
   SubmissionLeaderboardEntry,
   TokenResponse,
+  UserBadge,
   UserProfile,
   WorkflowStatus,
 } from "./types";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "/api" : "http://localhost:8000");
 const ACCESS_TOKEN_KEY = "sciona_access_token";
 
 function getStoredAccessToken(): string | null {
@@ -176,5 +183,55 @@ export const api = {
 
   async fetchRawBibtex(fqdn: string): Promise<string> {
     return requestText(`/dashboard/atom/${fqdn}/bibtex`);
+  },
+
+  // Badges
+
+  async getBadgeCatalog(): Promise<BadgeDefinition[]> {
+    return request<BadgeDefinition[]>("/badges");
+  },
+
+  async getBadgeDetail(badgeId: string): Promise<{ badge: BadgeDefinition; milestones: any[] }> {
+    return request<{ badge: BadgeDefinition; milestones: any[] }>(`/badges/${badgeId}`);
+  },
+
+  async getUserBadges(userId: string): Promise<UserBadge[]> {
+    return request<UserBadge[]>(`/users/${userId}/badges`);
+  },
+
+  async getUserBadgeProgress(userId: string): Promise<BadgeProgress[]> {
+    return request<BadgeProgress[]>(`/users/${userId}/badges/progress`);
+  },
+
+  async getBadgeTelemetry(badgeId: string, userId?: string): Promise<BadgeTelemetry> {
+    return request<BadgeTelemetry>(
+      withQuery(`/badges/${badgeId}/telemetry`, { user_id: userId }),
+    );
+  },
+
+  async getGrandmasterStatus(userId: string): Promise<GrandmasterStatus> {
+    return request<GrandmasterStatus>(`/users/${userId}/grandmaster`);
+  },
+
+  // Referrals
+
+  async generateReferralCode(): Promise<ReferralCode> {
+    return request<ReferralCode>("/referrals/code", { method: "POST" });
+  },
+
+  async getMyReferralCodes(): Promise<ReferralCode[]> {
+    return request<ReferralCode[]>("/referrals/codes");
+  },
+
+  async acceptReferral(code: string): Promise<{ status: string }> {
+    return request<{ status: string }>("/referrals/accept", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+  },
+
+  async getMyReferrals(): Promise<Referral[]> {
+    return request<Referral[]>("/referrals/mine");
   },
 };

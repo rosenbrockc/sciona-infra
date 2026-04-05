@@ -11,6 +11,9 @@ import Leaderboard from "./pages/Leaderboard";
 import ESGDashboard from "./pages/ESGDashboard";
 import OriginatorProfile from "./pages/OriginatorProfile";
 import AuthCallback from "./pages/AuthCallback";
+import BadgeCatalog from "./pages/BadgeCatalog";
+import BadgeDetail from "./pages/BadgeDetail";
+import ReferralLanding from "./pages/ReferralLanding";
 
 export default function App() {
   return (
@@ -51,8 +54,11 @@ export default function App() {
           <Route path="leaderboard" element={<Leaderboard />} />
           <Route path="esg" element={<ESGDashboard />} />
           <Route path="originator/:id" element={<OriginatorProfile />} />
+          <Route path="badges" element={<BadgeCatalog />} />
+          <Route path="badges/:badgeId" element={<BadgeDetail />} />
         </Route>
         <Route path="auth/callback" element={<AuthCallback />} />
+        <Route path="invite/:code" element={<ReferralLanding />} />
       </Routes>
     </AuthProvider>
   );

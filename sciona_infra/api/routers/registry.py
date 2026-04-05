@@ -111,7 +111,7 @@ async def publish_atom(
     if not version_row:
         raise HTTPException(500, "Failed to create version")
 
-    return AtomPublishResponse(
+    response = AtomPublishResponse(
         atom_id=atom_id,
         version_id=version_row["version_id"],
         fqdn=body.fqdn,
@@ -119,6 +119,16 @@ async def publish_atom(
         semver=body.semver,
         is_new_atom=is_new,
     )
+
+    # Badge + referral hooks (non-blocking)
+    try:
+        from sciona_infra.api.badges import evaluate_badges_for_user, check_referral_value
+        await evaluate_badges_for_user(supabase, user_id, "atom_published")
+        await check_referral_value(supabase, user_id, "atom_published")
+    except Exception:
+        pass
+
+    return response
 
 
 @router.get("/{fqdn:path}/versions")

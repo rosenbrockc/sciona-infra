@@ -151,3 +151,74 @@ export interface VerificationRun {
   output_hash: string | null;
   is_deterministic: boolean | null;
 }
+
+// Badges
+
+export interface BadgeDefinition {
+  badge_id: string;
+  display_name: string;
+  description: string;
+  track: string;
+  icon_slug: string;
+  is_hidden: boolean;
+  sort_order: number;
+}
+
+export interface BadgeMilestone {
+  milestone_id: string;
+  badge_id: string;
+  tier: string;
+  threshold_value: number;
+  threshold_unit: string;
+  rarity_pct?: number;
+}
+
+export interface UserBadge {
+  id: string;
+  user_id: string;
+  milestone_id: string;
+  awarded_at: string;
+  progress_value: number;
+}
+
+export interface BadgeProgress {
+  user_id: string;
+  badge_id: string;
+  current_value: number;
+  highest_awarded_tier: string | null;
+  updated_at: string;
+}
+
+export interface BadgeTelemetry {
+  badge_id: string;
+  current_value: number;
+  rarity_pct: number;
+  holder_count: number;
+}
+
+export interface GrandmasterStatus {
+  user_id: string;
+  tracks: Record<string, boolean>;
+  is_grandmaster: boolean;
+}
+
+// Referrals
+
+export interface ReferralCode {
+  code: string;
+  referrer_id: string;
+  created_at: string;
+  expires_at: string | null;
+  max_uses: number;
+  use_count: number;
+}
+
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referee_id: string;
+  code: string;
+  created_at: string;
+  first_value_event: string | null;
+  value_created_at: string | null;
+}

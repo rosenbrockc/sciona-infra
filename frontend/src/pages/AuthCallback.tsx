@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { api } from "../api/client";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "/api" : "http://localhost:8000");
 const POST_LOGIN_PATH_KEY = "sciona_post_login_path";
+const REFERRAL_STORAGE_KEY = "sciona_referral_code";
 
 export default function AuthCallback() {
   const { handleToken } = useAuth();
@@ -31,6 +33,16 @@ export default function AuthCallback() {
           await handleToken(accessToken, refreshToken ?? undefined);
           if (cancelled) {
             return;
+          }
+          // Accept referral if stored
+          const referralCode = localStorage.getItem(REFERRAL_STORAGE_KEY);
+          if (referralCode) {
+            try {
+              await api.acceptReferral(referralCode);
+            } catch {
+              // non-blocking
+            }
+            localStorage.removeItem(REFERRAL_STORAGE_KEY);
           }
           const storedPath = sessionStorage.getItem(POST_LOGIN_PATH_KEY);
           if (storedPath) {
@@ -67,6 +79,16 @@ export default function AuthCallback() {
           );
           if (cancelled) {
             return;
+          }
+          // Accept referral if stored
+          const referralCode = localStorage.getItem(REFERRAL_STORAGE_KEY);
+          if (referralCode) {
+            try {
+              await api.acceptReferral(referralCode);
+            } catch {
+              // non-blocking
+            }
+            localStorage.removeItem(REFERRAL_STORAGE_KEY);
           }
           const storedPath = sessionStorage.getItem(POST_LOGIN_PATH_KEY);
           if (storedPath) {
