@@ -7,6 +7,7 @@ import StatusBadge from "../components/StatusBadge";
 import LeaderboardTable from "../components/LeaderboardTable";
 import { PageSkeleton } from "../components/LoadingSkeleton";
 import EmptyState from "../components/EmptyState";
+import EscrowAmount from "../components/EscrowAmount";
 import { formatUsd, formatNumber } from "../utils/format";
 
 export default function Home() {
@@ -117,7 +118,7 @@ export default function Home() {
                       {b.title}
                     </span>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs font-mono text-muted">{formatUsd(b.escrow_amount)}</span>
+                      <EscrowAmount amount={b.escrow_amount} className="text-sm" />
                       <StatusBadge status={b.status} />
                     </div>
                   </Link>

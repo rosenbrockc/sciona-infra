@@ -3,10 +3,11 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { BountySummaryResponse } from "../api/types";
 import StatusBadge from "../components/StatusBadge";
+import EscrowAmount from "../components/EscrowAmount";
 import Pagination from "../components/Pagination";
 import EmptyState from "../components/EmptyState";
 import { TableSkeleton } from "../components/LoadingSkeleton";
-import { formatDate, formatUsd } from "../utils/format";
+import { formatDate } from "../utils/format";
 
 const STATUSES = ["all", "open", "submitted", "verification", "settled", "cancelled", "expired"];
 const LIMIT = 12;
@@ -93,7 +94,7 @@ export default function BountyList() {
                         {b.title}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 font-mono text-white">{formatUsd(b.escrow_amount)}</td>
+                    <td className="px-6 py-4"><EscrowAmount amount={b.escrow_amount} /></td>
                     <td className="px-6 py-4 text-muted">{formatDate(b.deadline)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1 flex-wrap">

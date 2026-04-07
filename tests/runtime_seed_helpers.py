@@ -1169,6 +1169,46 @@ async def seed_runtime_dataset(
         f"cdg-{suffix}",
     )
 
+    # Seed additional bounties at varying escrow tiers and statuses
+    _extra_bounties = [
+        ("Optimal sparse-attention kernel for 128K context", 50000.00, "open", "premium"),
+        ("Differentiable physics solver for fluid sim", 25000.00, "open", "premium"),
+        ("Low-rank adaptation for domain-specific LLM fine-tuning", 10000.00, "submitted", "standard"),
+        ("Verified RLHF reward model calibration", 5000.00, "verification", "standard"),
+        ("Sub-quadratic graph neural network aggregator", 5000.00, "open", "standard"),
+        ("Efficient KV-cache compression for long-context inference", 2500.00, "submitted", "standard"),
+        ("Privacy-preserving federated gradient aggregation", 1500.00, "settled", "standard"),
+        ("Numerically stable softmax for mixed-precision training", 750.00, "settled", "standard"),
+        ("Symbolic regression benchmark atom", 500.00, "cancelled", "basic"),
+        ("Bayesian hyperparameter sampler atom", 250.00, "expired", "basic"),
+    ]
+    for _title, _escrow, _status, _tier in _extra_bounties:
+        _bid = str(uuid4())
+        await conn.execute(
+            """
+            INSERT INTO public.bounties (
+                bounty_id, principal_id, title, escrow_amount, status,
+                deadline, tier, verification_budget, verifications_used,
+                config_yml, flare_payload, public_split_hash, blind_split_hash,
+                cancellation_fee
+            )
+            VALUES (
+                $1::uuid, $2::uuid, $3, $4, $5,
+                now() + interval '30 days', $6, 5, 0,
+                '{"min_metric_value":0.90}'::jsonb, '{"mode":"runtime"}'::jsonb,
+                $7, $8, 0
+            )
+            """,
+            _bid,
+            reviewer.user_id,
+            _title,
+            _escrow,
+            _status,
+            _tier,
+            f"pub-{_bid[:8]}",
+            f"blind-{_bid[:8]}",
+        )
+
     publishable = await conn.fetchval("SELECT public.atom_is_publishable($1::uuid)", atom_id)
     if not publishable:
         raise AssertionError(f"Seed atom {atom_id} did not become publishable")

@@ -11,6 +11,7 @@ import StatCard from "../components/StatCard";
 import StatusBadge from "../components/StatusBadge";
 import WorkflowTimeline from "../components/WorkflowTimeline";
 import VerificationRunList from "../components/VerificationRunList";
+import EscrowAmount from "../components/EscrowAmount";
 import { PageSkeleton } from "../components/LoadingSkeleton";
 import { formatDateTime, truncateId, formatUsd } from "../utils/format";
 
@@ -75,7 +76,14 @@ export default function BountyDetail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Escrow" value={formatUsd(bounty.escrow_amount)} accentColor="#38bdf8" />
+        <div className="card p-5 relative overflow-hidden group">
+          <div
+            className="absolute top-0 left-0 right-0 h-[2px] opacity-40 group-hover:opacity-70 transition-opacity"
+            style={{ background: bounty.escrow_amount >= 10000 ? "#d4a843" : bounty.escrow_amount >= 1000 ? "#94a3b8" : "#c87a50" }}
+          />
+          <p className="section-heading mb-2">Escrow</p>
+          <EscrowAmount amount={bounty.escrow_amount} className="text-2xl" />
+        </div>
         <StatCard label="Tier" value={bounty.tier} accentColor="#818cf8" />
         <StatCard label="Deadline" value={bounty.deadline ? formatDateTime(bounty.deadline) : "None"} />
         <StatCard label="Submissions" value={bounty.submission_count} accentColor="#22c55e" />
