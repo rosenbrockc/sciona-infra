@@ -13,6 +13,7 @@ import OriginatorProfile from "./pages/OriginatorProfile";
 import AuthCallback from "./pages/AuthCallback";
 import BadgeCatalog from "./pages/BadgeCatalog";
 import BadgeDetail from "./pages/BadgeDetail";
+import Reputation from "./pages/Reputation";
 import ReferralLanding from "./pages/ReferralLanding";
 
 export default function App() {
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="originator/:id" element={<OriginatorProfile />} />
           <Route path="badges" element={<BadgeCatalog />} />
           <Route path="badges/:badgeId" element={<BadgeDetail />} />
+          <Route path="reputation" element={<Reputation />} />
         </Route>
         <Route path="auth/callback" element={<AuthCallback />} />
         <Route path="invite/:code" element={<ReferralLanding />} />

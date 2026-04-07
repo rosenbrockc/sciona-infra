@@ -1286,6 +1286,7 @@ async def seed_runtime_dataset(
     )
     await conn.execute("REFRESH MATERIALIZED VIEW public.atom_audit_latest")
     await conn.execute("REFRESH MATERIALIZED VIEW public.catalog_atoms_index")
+    await conn.execute("REFRESH MATERIALIZED VIEW public.reputation_leaderboard")
 
     return RuntimeSeed(
         suffix=suffix,

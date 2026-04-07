@@ -146,16 +146,63 @@ async def get_leaderboard(
     limit: int = 50,
     supabase=Depends(api_deps.get_supabase),
 ) -> list[dict]:
-    """Top originators by impact factor."""
+    """Top originators by reputation score."""
     result = await (
         supabase.table("originator_impact")
         .select(
-            "originator_id, github_login, bounty_count, total_bounty_value, atom_count"
+            "originator_id, github_login, bounty_count, total_bounty_value, atom_count, reputation"
         )
-        .order("total_bounty_value", desc=True)
+        .order("reputation", desc=True)
         .limit(limit)
         .execute()
     )
+    return list(result.data or [])
+
+
+@router.get("/dashboard/reputation/{user_id}")
+async def get_reputation_breakdown(
+    user_id: UUID,
+    supabase=Depends(api_deps.get_supabase),
+) -> dict:
+    """Live reputation breakdown for a user."""
+    result = await supabase.rpc(
+        "get_reputation_breakdown", {"p_user_id": str(user_id)}
+    ).execute()
+    row = _first_row(result.data)
+    if not row:
+        return {
+            "user_id": str(user_id),
+            "originator_reputation": 0,
+            "architect_reputation": 0,
+            "total_reputation": 0,
+        }
+    return {
+        "user_id": str(user_id),
+        **row,
+    }
+
+
+@router.get("/dashboard/reputation/{user_id}/originator-detail")
+async def get_originator_reputation_detail(
+    user_id: UUID,
+    supabase=Depends(api_deps.get_supabase),
+) -> list[dict]:
+    """Per-category originator reputation breakdown with detail items."""
+    result = await supabase.rpc(
+        "get_originator_reputation_detail", {"p_user_id": str(user_id)}
+    ).execute()
+    return list(result.data or [])
+
+
+@router.get("/dashboard/reputation/{user_id}/architect-detail")
+async def get_architect_reputation_detail(
+    user_id: UUID,
+    supabase=Depends(api_deps.get_supabase),
+) -> list[dict]:
+    """Per-category architect reputation breakdown with detail items."""
+    result = await supabase.rpc(
+        "get_architect_reputation_detail", {"p_user_id": str(user_id)}
+    ).execute()
     return list(result.data or [])
 
 
@@ -164,14 +211,14 @@ async def get_architect_leaderboard(
     limit: int = 50,
     supabase=Depends(api_deps.get_supabase),
 ) -> list[dict]:
-    """Top architects by total earnings from winning CDGs."""
+    """Top architects by reputation score."""
     result = await (
         supabase.table("architect_leaderboard")
         .select(
             "architect_id, github_login, submission_count, win_count, "
-            "total_earned, bounties_won, distinct_atoms_used"
+            "total_earned, bounties_won, distinct_atoms_used, reputation"
         )
-        .order("total_earned", desc=True)
+        .order("reputation", desc=True)
         .limit(limit)
         .execute()
     )

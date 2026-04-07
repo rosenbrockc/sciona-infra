@@ -61,6 +61,7 @@ export interface LeaderboardEntry {
   bounty_count: number;
   total_bounty_value: number;
   atom_count: number;
+  reputation: number;
   h_index?: number;
 }
 
@@ -72,6 +73,7 @@ export interface ArchitectLeaderboardEntry {
   total_earned: number;
   bounties_won: number;
   distinct_atoms_used: number;
+  reputation: number;
 }
 
 export interface OriginatorImpact {
@@ -160,6 +162,21 @@ export interface VerificationRun {
   metric_values: Record<string, number> | null;
   output_hash: string | null;
   is_deterministic: boolean | null;
+}
+
+// Reputation
+
+export interface ReputationBreakdown {
+  user_id: string;
+  originator_reputation: number;
+  architect_reputation: number;
+  total_reputation: number;
+}
+
+export interface ReputationCategory {
+  category: string;
+  score: number;
+  detail: Record<string, any>;
 }
 
 // Badges

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { LeaderboardEntry, BadgeDefinition, UserBadge } from "../api/types";
 import BadgeShowcase from "./BadgeShowcase";
-import { formatUsd } from "../utils/format";
+import { formatUsd, formatNumber } from "../utils/format";
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
@@ -25,7 +25,7 @@ export default function LeaderboardTable({ entries, compact, badges, badgesByUse
           <th className="pb-2.5 pr-4 section-heading w-10">#</th>
           <th className="pb-2.5 pr-4 section-heading">Originator</th>
           {badges && badges.length > 0 && <th className="pb-2.5 pr-4 section-heading">Badges</th>}
-          <th className="pb-2.5 pr-4 section-heading">Impact</th>
+          <th className="pb-2.5 pr-4 section-heading">Rep</th>
           {!compact && <th className="pb-2.5 pr-4 section-heading">Bounties</th>}
           <th className="pb-2.5 pr-4 section-heading">Value</th>
           {!compact && <th className="pb-2.5 section-heading">Atoms</th>}
@@ -51,7 +51,7 @@ export default function LeaderboardTable({ entries, compact, badges, badgesByUse
                 />
               </td>
             )}
-            <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">{e.h_index ?? "-"}</td>
+            <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">{formatNumber(e.reputation)}</td>
             {!compact && <td className="py-3 pr-4 text-muted tabular-nums">{e.bounty_count}</td>}
             <td className="py-3 pr-4 font-mono text-white tabular-nums">{formatUsd(e.total_bounty_value)}</td>
             {!compact && <td className="py-3 text-muted tabular-nums">{e.atom_count}</td>}

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ArchitectLeaderboardEntry } from "../api/types";
 import EscrowAmount from "./EscrowAmount";
+import { formatNumber } from "../utils/format";
 
 interface ArchitectTableProps {
   entries: ArchitectLeaderboardEntry[];
@@ -21,6 +22,7 @@ export default function ArchitectTable({ entries, compact }: ArchitectTableProps
         <tr className="text-left border-b border-border">
           <th className="pb-2.5 pr-4 section-heading w-10">#</th>
           <th className="pb-2.5 pr-4 section-heading">Architect</th>
+          <th className="pb-2.5 pr-4 section-heading">Rep</th>
           <th className="pb-2.5 pr-4 section-heading">Wins</th>
           {!compact && <th className="pb-2.5 pr-4 section-heading">Submissions</th>}
           <th className="pb-2.5 pr-4 section-heading">Earned</th>
@@ -42,6 +44,9 @@ export default function ArchitectTable({ entries, compact }: ArchitectTableProps
                 <Link to={`/originator/${e.architect_id}`} className="text-gray-200 group-hover:text-accent transition-colors font-medium">
                   {e.github_login || e.architect_id.slice(0, 8)}
                 </Link>
+              </td>
+              <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">
+                {formatNumber(e.reputation)}
               </td>
               <td className="py-3 pr-4">
                 <span className="font-mono text-white font-medium tabular-nums">{e.win_count}</span>

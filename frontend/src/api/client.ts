@@ -16,6 +16,8 @@ import type {
   PaginatedResponse,
   Referral,
   ReferralCode,
+  ReputationBreakdown,
+  ReputationCategory,
   SettlementInfo,
   SubmissionLeaderboardEntry,
   TokenResponse,
@@ -182,6 +184,18 @@ export const api = {
 
   async getComputePreserved(): Promise<ComputePreserved> {
     return request<ComputePreserved>("/dashboard/compute-preserved");
+  },
+
+  async getReputationBreakdown(userId: string): Promise<ReputationBreakdown> {
+    return request<ReputationBreakdown>(`/dashboard/reputation/${userId}`);
+  },
+
+  async getOriginatorReputationDetail(userId: string): Promise<ReputationCategory[]> {
+    return request<ReputationCategory[]>(`/dashboard/reputation/${userId}/originator-detail`);
+  },
+
+  async getArchitectReputationDetail(userId: string): Promise<ReputationCategory[]> {
+    return request<ReputationCategory[]>(`/dashboard/reputation/${userId}/architect-detail`);
   },
 
   async getOriginatorImpact(id: string): Promise<OriginatorImpact> {
