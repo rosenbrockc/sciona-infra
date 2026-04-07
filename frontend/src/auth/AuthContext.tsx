@@ -23,7 +23,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 const TOKEN_KEY = "sciona_access_token";
 const REFRESH_KEY = "sciona_refresh_token";
 const POST_LOGIN_PATH_KEY = "sciona_post_login_path";
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "/api" : "http://localhost:8000");
 
 async function fetchMe(token: string): Promise<UserProfile> {
   const response = await fetch(`${API_BASE}/auth/me`, {

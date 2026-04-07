@@ -316,7 +316,7 @@ INSERT INTO badge_definitions (badge_id, display_name, description, track, icon_
 -- Architect track
 ('deadend',       'Dead-End Breaker','Win bounties with verified submissions',                 'architect',  'deadend',       FALSE, 5),
 ('titan',         'Titan',           'Accumulate bounty winnings',                             'architect',  'titan',         FALSE, 6),
-('synthesizer',   'Synthesizer',     'Compose CDGs from many authors\'' || ' atoms',           'architect',  'synthesizer',   FALSE, 7),
+('synthesizer',   'Synthesizer',     'Compose CDGs from many authors'' atoms',                 'architect',  'synthesizer',   FALSE, 7),
 ('polymath',      'Polymath',        'Compose CDGs spanning many domains',                     'architect',  'polymath',      FALSE, 8),
 -- Vanguard track
 ('anvil',         'Anvil',           'Stress-test atoms with fuzz testing',                    'vanguard',   'anvil',         FALSE, 9),
