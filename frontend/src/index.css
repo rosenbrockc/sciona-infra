@@ -57,28 +57,46 @@
   }
 
   .page-subtitle {
-    @apply text-sm text-muted/80 mt-1.5 max-w-2xl leading-relaxed;
+    @apply text-sm mt-1.5 max-w-2xl leading-relaxed;
+    color: rgba(123, 138, 181, 0.8);
   }
 
   .btn-primary {
     @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-           bg-accent/12 text-accent border border-accent/25
-           hover:bg-accent/20 hover:border-accent/40 hover:shadow-glow
-           transition-all duration-200 active:scale-[0.98];
+           text-accent hover:shadow-glow
+           transition-all duration-200;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+  }
+  .btn-primary:hover {
+    background: rgba(56, 189, 248, 0.20);
+    border-color: rgba(56, 189, 248, 0.40);
+  }
+  .btn-primary:active {
+    transform: scale(0.98);
   }
 
   .btn-secondary {
     @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
            bg-panel-soft text-muted border border-border
            hover:text-gray-200 hover:border-border-bright hover:bg-panel-bright
-           transition-all duration-200 active:scale-[0.98];
+           transition-all duration-200;
+  }
+  .btn-secondary:active {
+    transform: scale(0.98);
   }
 
   .input-field {
     @apply w-full rounded-lg border border-border bg-panel px-3.5 py-2.5 text-sm
-           text-gray-200 placeholder:text-muted/40
-           focus:outline-none focus:border-accent/40 focus:ring-1 focus:ring-accent/15
-           focus:shadow-glow transition-all duration-200;
+           text-gray-200 focus:outline-none focus:shadow-glow transition-all duration-200;
+    --tw-placeholder-color: rgba(123, 138, 181, 0.4);
+  }
+  .input-field::placeholder {
+    color: rgba(123, 138, 181, 0.4);
+  }
+  .input-field:focus {
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.15), 0 0 20px rgba(56, 189, 248, 0.12), 0 0 4px rgba(56, 189, 248, 0.15);
   }
 
   .skeleton {
@@ -86,8 +104,9 @@
   }
 
   .tag {
-    @apply inline-flex px-2.5 py-0.5 bg-panel-soft/80 rounded-md text-xs text-muted
-           border border-border/60;
+    @apply inline-flex px-2.5 py-0.5 rounded-md text-xs text-muted;
+    background: rgba(20, 26, 54, 0.8);
+    border: 1px solid rgba(26, 34, 68, 0.6);
   }
 
   /* Accent-colored top stripe on cards */
