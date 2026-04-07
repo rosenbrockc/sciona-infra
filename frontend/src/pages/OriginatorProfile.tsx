@@ -40,12 +40,13 @@ export default function OriginatorProfile() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-muted">
         <Link to="/leaderboard" className="hover:text-accent transition-colors">Leaderboard</Link>
-        <span>/</span>
+        <span className="text-border-bright">/</span>
         <span className="text-gray-400">{impact.github_username || "Profile"}</span>
       </div>
 
       {/* Profile Header */}
-      <div className="card p-6">
+      <div className="card p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-accent/30 via-accent-2/15 to-transparent" />
         <div className="flex items-center gap-5">
           <GrandmasterRing status={grandmaster}>
             <div className="h-16 w-16 rounded-full bg-panel-soft border border-border-bright flex items-center justify-center text-2xl font-bold text-accent">
@@ -63,17 +64,18 @@ export default function OriginatorProfile() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Impact (h-index)" value={impact.h_index} />
-        <StatCard label="Bounties" value={impact.bounty_count} />
-        <StatCard label="Total Value" value={formatUsd(impact.total_bounty_value)} />
-        <StatCard label="Atoms Published" value={impact.atom_count} />
+        <StatCard label="Impact (h-index)" value={impact.h_index} accentColor="#38bdf8" />
+        <StatCard label="Bounties" value={impact.bounty_count} accentColor="#818cf8" />
+        <StatCard label="Total Value" value={formatUsd(impact.total_bounty_value)} accentColor="#22c55e" />
+        <StatCard label="Atoms Published" value={impact.atom_count} accentColor="#d4a843" />
       </div>
 
       {/* Badges */}
-      <div className="card p-6">
+      <div className="card p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-tier-lattice/30 via-tier-node/15 to-transparent" />
         <div className="flex items-center justify-between mb-5">
           <h3 className="section-heading">Badges</h3>
-          <Link to="/badges" className="text-xs text-accent hover:text-accent/80 transition-colors font-medium">
+          <Link to="/badges" className="text-xs text-accent hover:text-accent-bright transition-colors font-medium">
             View catalog
           </Link>
         </div>

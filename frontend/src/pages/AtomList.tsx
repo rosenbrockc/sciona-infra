@@ -42,7 +42,7 @@ export default function AtomList() {
 
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -76,9 +76,10 @@ export default function AtomList() {
               <Link
                 key={a.fqdn}
                 to={`/atoms/${a.fqdn}`}
-                className="card-hover p-5 group"
+                className="card-hover p-5 group relative overflow-hidden"
               >
-                <p className="font-mono text-accent text-sm mb-1.5 group-hover:text-white transition-colors">
+                <div className="absolute top-0 left-0 right-0 h-[1px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-accent/40 via-accent/20 to-transparent" />
+                <p className="font-mono text-accent text-sm mb-1.5 group-hover:text-accent-bright transition-colors">
                   {a.fqdn}
                 </p>
                 <p className="text-sm text-gray-400 line-clamp-2 mb-4 leading-relaxed">

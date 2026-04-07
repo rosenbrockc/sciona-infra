@@ -37,41 +37,36 @@ export default function Layout() {
 
   async function handleLogin() {
     setError("");
-    try {
-      await login();
-    } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Login failed");
-    }
+    try { await login(); } catch (e) { setError(e instanceof Error ? e.message : "Login failed"); }
   }
 
   async function handleEnterpriseLogin() {
     setError("");
-    try {
-      await loginEnterprise(orgSlug);
-    } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Enterprise login failed");
-    }
+    try { await loginEnterprise(orgSlug); } catch (e) { setError(e instanceof Error ? e.message : "Enterprise login failed"); }
   }
 
   const sidebar = (
     <>
       {/* Logo */}
-      <div className="p-5 pb-4">
-        <Link to="/" className="flex items-center gap-2.5 group" onClick={() => setMobileOpen(false)}>
-          <div className="w-8 h-8 rounded-lg bg-accent-gradient flex items-center justify-center shadow-glow">
-            <span className="text-white font-bold text-sm">AC</span>
+      <div className="p-5 pb-3">
+        <Link to="/" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
+          <div className="w-9 h-9 rounded-lg bg-accent-gradient flex items-center justify-center shadow-glow relative">
+            <span className="text-white font-bold text-sm tracking-tight">AC</span>
           </div>
           <div>
             <h1 className="text-sm font-bold text-white leading-tight tracking-tight">
               Algorithmic Commons
             </h1>
-            <p className="text-[10px] text-muted font-medium tracking-wide">RESEARCH PLATFORM</p>
+            <p className="text-[10px] text-muted/60 font-medium tracking-widest mt-0.5">RESEARCH PLATFORM</p>
           </div>
         </Link>
       </div>
 
+      {/* Divider with glow */}
+      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-border-bright to-transparent" />
+
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2">
+      <nav className="flex-1 px-3 py-4">
         <ul className="space-y-0.5">
           {links.map((l) => (
             <li key={l.to}>
@@ -80,10 +75,10 @@ export default function Layout() {
                 end={l.to === "/"}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-accent/10 text-accent shadow-sm"
-                      : "text-muted hover:text-gray-200 hover:bg-panel-soft"
+                      ? "bg-accent/8 text-accent border border-accent/15 shadow-glow"
+                      : "text-muted/80 hover:text-gray-200 hover:bg-panel-soft border border-transparent"
                   }`
                 }
               >
@@ -96,7 +91,8 @@ export default function Layout() {
       </nav>
 
       {/* User section */}
-      <div className="p-4 border-t border-border mx-3 space-y-3">
+      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-border-bright to-transparent" />
+      <div className="p-4 space-y-3">
         {loading ? (
           <div className="space-y-2">
             <div className="skeleton h-3 w-24 rounded" />
@@ -107,11 +103,8 @@ export default function Layout() {
             <div className="flex items-center gap-2.5 min-w-0">
               {user.avatar_url ? (
                 <GrandmasterRing status={grandmaster}>
-                  <img
-                    src={user.avatar_url}
-                    alt={user.display_name}
-                    className="h-8 w-8 rounded-full border border-border-bright"
-                  />
+                  <img src={user.avatar_url} alt={user.display_name}
+                    className="h-8 w-8 rounded-full border border-border-bright" />
                 </GrandmasterRing>
               ) : (
                 <div className="h-8 w-8 rounded-full bg-panel-soft border border-border-bright flex items-center justify-center text-xs font-bold text-accent">
@@ -119,19 +112,11 @@ export default function Layout() {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-200 truncate">
-                  {user.display_name || user.github_login}
-                </p>
-                <p className="text-xs text-muted truncate capitalize">
-                  {user.effective_tier}
-                </p>
+                <p className="text-sm font-medium text-gray-200 truncate">{user.display_name || user.github_login}</p>
+                <p className="text-[11px] text-muted/60 truncate capitalize">{user.effective_tier}</p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={logout}
-              className="text-xs text-muted hover:text-gray-300 transition-colors"
-            >
+            <button type="button" onClick={logout} className="text-xs text-muted/60 hover:text-gray-300 transition-colors">
               Sign out
             </button>
           </div>
@@ -142,41 +127,28 @@ export default function Layout() {
               Sign in with GitHub
             </button>
             <div className="space-y-2">
-              <label className="block text-[10px] uppercase tracking-widest text-muted font-medium">
-                Enterprise SSO
-              </label>
-              <input
-                value={orgSlug}
-                onChange={(event) => setOrgSlug(event.target.value)}
-                placeholder="org-slug"
-                className="input-field text-xs py-2"
-              />
-              <button type="button" onClick={handleEnterpriseLogin} className="btn-secondary w-full justify-center text-xs">
-                Enterprise sign in
-              </button>
+              <label className="block text-[10px] uppercase tracking-widest text-muted/50 font-medium">Enterprise SSO</label>
+              <input value={orgSlug} onChange={(e) => setOrgSlug(e.target.value)} placeholder="org-slug" className="input-field text-xs py-2" />
+              <button type="button" onClick={handleEnterpriseLogin} className="btn-secondary w-full justify-center text-xs">Enterprise sign in</button>
             </div>
           </div>
         )}
-        {error ? <p className="text-xs text-bad">{error}</p> : null}
-        <p className="text-[10px] text-muted/50 pt-1">v0.1.0</p>
+        {error && <p className="text-xs text-bad">{error}</p>}
+        <p className="text-[10px] text-muted/30 pt-1">v0.1.0</p>
       </div>
     </>
   );
 
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="flex min-h-screen">
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 bg-panel/90 backdrop-blur-md border-b border-border">
-        <button
-          type="button"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-1.5 rounded-lg text-muted hover:text-gray-200 hover:bg-panel-soft transition-colors"
-        >
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 bg-panel/95 backdrop-blur-md border-b border-border">
+        <button type="button" onClick={() => setMobileOpen(!mobileOpen)}
+          className="p-1.5 rounded-lg text-muted hover:text-gray-200 hover:bg-panel-soft transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             {mobileOpen
               ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            }
+              : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
           </svg>
         </button>
         <span className="text-sm font-bold text-white">Algorithmic Commons</span>
@@ -184,23 +156,18 @@ export default function Layout() {
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside
-        className={`fixed lg:sticky top-0 z-40 lg:z-auto h-screen w-64 bg-panel border-r border-border flex flex-col transition-transform duration-200 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
+      <aside className={`fixed lg:sticky top-0 z-40 lg:z-auto h-screen w-64 bg-sidebar-gradient border-r border-border flex flex-col transition-transform duration-200 ${
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      }`}>
         {sidebar}
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-w-0 lg:pl-0 pt-14 lg:pt-0">
+      <main className="flex-1 min-w-0 pt-14 lg:pt-0">
         <div className="p-6 lg:p-8 max-w-7xl mx-auto animate-fade-in">
           <Outlet />
         </div>

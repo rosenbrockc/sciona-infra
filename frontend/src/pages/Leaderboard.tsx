@@ -35,7 +35,8 @@ export default function Leaderboard() {
         <h2 className="page-title">Originator Leaderboard</h2>
         <p className="page-subtitle">Top contributors ranked by algorithmic impact factor.</p>
       </div>
-      <div className="card overflow-hidden">
+      <div className="card overflow-hidden relative">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-tier-lattice/30 via-tier-edge/15 to-transparent" />
         {entries.length > 0 ? (
           <div className="overflow-x-auto">
             <div className="p-6">

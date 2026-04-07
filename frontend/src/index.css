@@ -5,7 +5,7 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #334155 transparent;
+    scrollbar-color: #253262 transparent;
   }
 
   *::-webkit-scrollbar {
@@ -18,7 +18,7 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #253262;
     border-radius: 3px;
   }
 
@@ -26,19 +26,30 @@
     background: rgba(56, 189, 248, 0.3);
     color: #e2e8f0;
   }
+
+  body {
+    background-color: #06091a;
+    /* Subtle dot grid — evokes the geometric/lattice theme */
+    background-image:
+      radial-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
 }
 
 @layer components {
   .card {
-    @apply bg-panel border border-border rounded-xl shadow-card;
+    @apply bg-card-gradient border border-border rounded-xl shadow-card shadow-inner-glow
+           backdrop-blur-sm;
   }
 
   .card-hover {
-    @apply card transition-all duration-200 hover:border-border-bright hover:shadow-card-hover hover:-translate-y-0.5;
+    @apply card transition-all duration-200
+           hover:bg-card-gradient-hover hover:border-border-bright hover:shadow-card-hover
+           hover:-translate-y-0.5;
   }
 
   .section-heading {
-    @apply text-xs font-semibold text-muted uppercase tracking-widest;
+    @apply text-[11px] font-semibold text-muted uppercase tracking-widest;
   }
 
   .page-title {
@@ -46,28 +57,28 @@
   }
 
   .page-subtitle {
-    @apply text-sm text-muted mt-1 max-w-2xl;
+    @apply text-sm text-muted/80 mt-1.5 max-w-2xl leading-relaxed;
   }
 
   .btn-primary {
     @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-           bg-accent/15 text-accent border border-accent/30
-           hover:bg-accent/25 hover:border-accent/50
-           transition-all duration-150 active:scale-[0.98];
+           bg-accent/12 text-accent border border-accent/25
+           hover:bg-accent/20 hover:border-accent/40 hover:shadow-glow
+           transition-all duration-200 active:scale-[0.98];
   }
 
   .btn-secondary {
     @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
            bg-panel-soft text-muted border border-border
-           hover:text-gray-200 hover:border-border-bright
-           transition-all duration-150 active:scale-[0.98];
+           hover:text-gray-200 hover:border-border-bright hover:bg-panel-bright
+           transition-all duration-200 active:scale-[0.98];
   }
 
   .input-field {
-    @apply w-full rounded-lg border border-border bg-panel-soft px-3.5 py-2.5 text-sm
-           text-gray-200 placeholder:text-muted/60
-           focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20
-           transition-colors duration-150;
+    @apply w-full rounded-lg border border-border bg-panel px-3.5 py-2.5 text-sm
+           text-gray-200 placeholder:text-muted/40
+           focus:outline-none focus:border-accent/40 focus:ring-1 focus:ring-accent/15
+           focus:shadow-glow transition-all duration-200;
   }
 
   .skeleton {
@@ -75,6 +86,24 @@
   }
 
   .tag {
-    @apply inline-flex px-2 py-0.5 bg-panel-soft rounded-md text-xs text-muted border border-border/50;
+    @apply inline-flex px-2.5 py-0.5 bg-panel-soft/80 rounded-md text-xs text-muted
+           border border-border/60;
   }
+
+  /* Accent-colored top stripe on cards */
+  .card-accent-top {
+    @apply relative overflow-hidden;
+  }
+  .card-accent-top::before {
+    content: "";
+    @apply absolute top-0 left-0 right-0 h-[2px];
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    opacity: 0.6;
+  }
+
+  /* Track-colored left stripe */
+  .stripe-originator { border-left: 2px solid #d4875c; }
+  .stripe-architect  { border-left: 2px solid #5b8dd9; }
+  .stripe-vanguard   { border-left: 2px solid #34d399; }
+  .stripe-evangelist { border-left: 2px solid #a78bfa; }
 }

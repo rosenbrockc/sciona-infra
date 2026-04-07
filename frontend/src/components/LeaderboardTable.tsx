@@ -10,6 +10,13 @@ interface LeaderboardTableProps {
   badgesByUser?: Record<string, UserBadge[]>;
 }
 
+function RankCell({ rank }: { rank: number }) {
+  if (rank === 1) return <span className="text-tier-lattice font-bold">{rank}</span>;
+  if (rank === 2) return <span className="text-tier-edge font-bold">{rank}</span>;
+  if (rank === 3) return <span className="text-tier-node font-bold">{rank}</span>;
+  return <span className="text-muted">{rank}</span>;
+}
+
 export default function LeaderboardTable({ entries, compact, badges, badgesByUser }: LeaderboardTableProps) {
   return (
     <table className="w-full text-sm">
@@ -27,7 +34,9 @@ export default function LeaderboardTable({ entries, compact, badges, badgesByUse
       <tbody>
         {entries.map((e, index) => (
           <tr key={e.originator_id} className="border-b border-border/50 hover:bg-panel-soft/30 transition-colors group">
-            <td className="py-3 pr-4 text-muted tabular-nums font-medium">{index + 1}</td>
+            <td className="py-3 pr-4 tabular-nums font-medium">
+              <RankCell rank={index + 1} />
+            </td>
             <td className="py-3 pr-4">
               <Link to={`/originator/${e.originator_id}`} className="text-gray-200 group-hover:text-accent transition-colors font-medium">
                 {e.github_login || e.originator_id.slice(0, 8)}

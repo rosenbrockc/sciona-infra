@@ -60,6 +60,11 @@ export default function BountyDetail() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
+        <div className="flex items-center gap-2 text-xs text-muted mb-3">
+          <Link to="/bounties" className="hover:text-accent transition-colors">Bounties</Link>
+          <span className="text-border-bright">/</span>
+          <span className="text-gray-400 truncate">{bounty.title}</span>
+        </div>
         <div className="flex items-start gap-3 mb-3">
           <h2 className="page-title flex-1">{bounty.title}</h2>
           <StatusBadge status={bounty.status} />
@@ -70,10 +75,10 @@ export default function BountyDetail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Escrow" value={formatUsd(bounty.escrow_amount)} />
-        <StatCard label="Tier" value={bounty.tier} />
+        <StatCard label="Escrow" value={formatUsd(bounty.escrow_amount)} accentColor="#38bdf8" />
+        <StatCard label="Tier" value={bounty.tier} accentColor="#818cf8" />
         <StatCard label="Deadline" value={bounty.deadline ? formatDateTime(bounty.deadline) : "None"} />
-        <StatCard label="Submissions" value={bounty.submission_count} />
+        <StatCard label="Submissions" value={bounty.submission_count} accentColor="#22c55e" />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -87,7 +92,7 @@ export default function BountyDetail() {
       <div className="card p-6">
         <h3 className="section-heading mb-4">Verification Budget</h3>
         <div className="flex items-center gap-4">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-soft">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-panel-soft border border-border/50">
             <div
               className="h-full rounded-full bg-accent-gradient transition-all duration-500"
               style={{ width: `${Math.min(budgetPct, 100)}%` }}
@@ -101,7 +106,8 @@ export default function BountyDetail() {
 
       {/* Submission Leaderboard */}
       {leaderboard.length > 0 && (
-        <div className="card p-6">
+        <div className="card p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-accent/30 via-transparent to-transparent" />
           <h3 className="section-heading mb-5">Submission Leaderboard</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -116,11 +122,21 @@ export default function BountyDetail() {
                 </tr>
               </thead>
               <tbody>
-                {leaderboard.map((sub) => (
+                {leaderboard.map((sub, idx) => (
                   <tr key={sub.submission_id} className="border-b border-border/50 hover:bg-panel-soft/30 transition-colors">
-                    <td className="py-3 pr-4 text-muted tabular-nums font-medium">{sub.rank}</td>
+                    <td className="py-3 pr-4 tabular-nums font-medium">
+                      {idx === 0 ? (
+                        <span className="text-tier-lattice">{sub.rank}</span>
+                      ) : idx === 1 ? (
+                        <span className="text-tier-edge">{sub.rank}</span>
+                      ) : idx === 2 ? (
+                        <span className="text-tier-node">{sub.rank}</span>
+                      ) : (
+                        <span className="text-muted">{sub.rank}</span>
+                      )}
+                    </td>
                     <td className="py-3 pr-4">
-                      <Link to={`/originator/${sub.architect_id}`} className="text-accent hover:text-accent/80 transition-colors font-mono text-xs">
+                      <Link to={`/originator/${sub.architect_id}`} className="text-accent hover:text-accent-bright transition-colors font-mono text-xs">
                         {truncateId(sub.architect_id)}
                       </Link>
                     </td>
@@ -151,7 +167,8 @@ export default function BountyDetail() {
 
       {/* Settlement */}
       {settlement && settlement.status === "settled" && (
-        <div className="card p-6">
+        <div className="card p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-ok/30 via-transparent to-transparent" />
           <h3 className="section-heading mb-5">Settlement Breakdown</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

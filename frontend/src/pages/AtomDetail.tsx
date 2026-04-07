@@ -36,7 +36,7 @@ export default function AtomDetail() {
       <div>
         <div className="flex items-center gap-2 text-xs text-muted mb-2">
           <Link to="/atoms" className="hover:text-accent transition-colors">Atoms</Link>
-          <span>/</span>
+          <span className="text-border-bright">/</span>
           <span className="text-gray-400">{atom.fqdn}</span>
         </div>
         <h2 className="text-2xl font-bold font-mono text-accent tracking-tight">{atom.fqdn}</h2>
@@ -48,13 +48,14 @@ export default function AtomDetail() {
             ))}
           </div>
           <span className="text-xs text-muted">
-            by <Link to={`/originator/${atom.owner_github_login}`} className="text-accent hover:text-accent/80 transition-colors">{atom.owner_github_login || "unknown"}</Link>
+            by <Link to={`/originator/${atom.owner_github_login}`} className="text-accent hover:text-accent-bright transition-colors">{atom.owner_github_login || "unknown"}</Link>
           </span>
         </div>
       </div>
 
       {/* Versions */}
-      <div className="card p-6">
+      <div className="card p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-accent/20 via-transparent to-transparent" />
         <h3 className="section-heading mb-4">Version History</h3>
         {versions.length > 0 ? (
           <div className="overflow-x-auto">
@@ -75,7 +76,7 @@ export default function AtomDetail() {
                     <td className="py-3 pr-4 text-muted">{formatDate(v.created_at)}</td>
                     <td className="py-3">
                       {v.is_latest && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-ok/15 text-ok rounded-full text-xs font-medium">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-ok/10 text-ok rounded-full text-xs font-medium border border-ok/20">
                           <span className="w-1.5 h-1.5 rounded-full bg-ok" />
                           latest
                         </span>
@@ -109,7 +110,7 @@ export default function AtomDetail() {
               {copied ? "Copied!" : "Copy"}
             </button>
           </div>
-          <pre className="text-xs font-mono text-gray-300 bg-bg-soft rounded-lg p-4 overflow-x-auto whitespace-pre-wrap border border-border/50">
+          <pre className="text-xs font-mono text-gray-300 bg-bg rounded-lg p-4 overflow-x-auto whitespace-pre-wrap border border-border/50">
             {bibtex}
           </pre>
         </div>
