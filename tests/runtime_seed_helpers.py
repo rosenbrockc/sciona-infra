@@ -1209,6 +1209,74 @@ async def seed_runtime_dataset(
             f"blind-{_bid[:8]}",
         )
 
+    # Seed additional architects with winning submissions and payouts
+    _architect_names = [
+        ("dr_chen", "Dr. Chen"),
+        ("sato_ml", "Sato ML"),
+        ("kaplan_k", "K. Kaplan"),
+        ("rivera_a", "A. Rivera"),
+    ]
+    for _login, _display in _architect_names:
+        _arch = await create_live_auth_user(
+            conn,
+            api_url=api_url,
+            anon_key=anon_key,
+            service_role_key=service_role_key,
+            email=f"{_login}-{suffix}@example.com",
+            password=f"ArchPass!{_login}{suffix}",
+            login=f"{_login}_{suffix}",
+            display_name=_display,
+            identity_tier="contributor",
+        )
+        # Give each architect a few winning submissions across the settled bounties
+        _settled_ids = [settled_bounty_id]
+        for _t, _e, _s, _ti in _extra_bounties:
+            if _s == "settled":
+                # Find the bounty_id we just inserted (use title match)
+                _found = await conn.fetchval(
+                    "SELECT bounty_id FROM public.bounties WHERE title = $1 LIMIT 1", _t
+                )
+                if _found:
+                    _settled_ids.append(str(_found))
+
+        for _sbid in _settled_ids:
+            _sid = str(uuid4())
+            _earn = round(50 + hash(f"{_login}{_sbid}") % 3000, 2)
+            await conn.execute(
+                """
+                INSERT INTO public.submissions (
+                    submission_id, bounty_id, architect_id, cdg_hash,
+                    atom_versions, receipt_s3, receipt_json,
+                    claimed_metric_name, claimed_metric_value,
+                    verified_metric_value, verification_status, is_winner
+                )
+                VALUES ($1::uuid, $2::uuid, $3::uuid, $4,
+                        $5::jsonb, '', '{"ok":true}'::jsonb,
+                        'accuracy', 0.95, 0.94, 'blind_verified', TRUE)
+                ON CONFLICT DO NOTHING
+                """,
+                _sid,
+                _sbid,
+                _arch.user_id,
+                f"cdg-{_login}-{_sbid[:8]}",
+                f'{{"{atom_fqdn}": "{atom_content_hash}"}}',
+            )
+            await conn.execute(
+                """
+                INSERT INTO public.settlement_payouts (
+                    bounty_id, recipient_id, role, amount, stripe_transfer_id, atom_fqdn, cdg_hash
+                )
+                VALUES ($1::uuid, $2, 'architect', $3, $4, $5, $6)
+                ON CONFLICT DO NOTHING
+                """,
+                _sbid,
+                _arch.user_id,
+                _earn,
+                f"tr_{_login}_{_sbid[:8]}",
+                atom_fqdn,
+                f"cdg-{_login}-{_sbid[:8]}",
+            )
+
     publishable = await conn.fetchval("SELECT public.atom_is_publishable($1::uuid)", atom_id)
     if not publishable:
         raise AssertionError(f"Seed atom {atom_id} did not become publishable")

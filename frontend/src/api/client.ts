@@ -1,4 +1,5 @@
 import type {
+  ArchitectLeaderboardEntry,
   AtomDetailResponse,
   AtomSummaryResponse,
   AtomVersionResponse,
@@ -170,6 +171,12 @@ export const api = {
   async getLeaderboard(limit?: number): Promise<LeaderboardEntry[]> {
     return request<LeaderboardEntry[]>(
       withQuery("/dashboard/leaderboard", { limit }),
+    );
+  },
+
+  async getArchitectLeaderboard(limit?: number): Promise<ArchitectLeaderboardEntry[]> {
+    return request<ArchitectLeaderboardEntry[]>(
+      withQuery("/dashboard/architect-leaderboard", { limit }),
     );
   },
 

@@ -64,6 +64,16 @@ export interface LeaderboardEntry {
   h_index?: number;
 }
 
+export interface ArchitectLeaderboardEntry {
+  architect_id: string;
+  github_login: string;
+  submission_count: number;
+  win_count: number;
+  total_earned: number;
+  bounties_won: number;
+  distinct_atoms_used: number;
+}
+
 export interface OriginatorImpact {
   originator_id: string;
   github_username: string;

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
-import type { BountySummaryResponse, LeaderboardEntry, ComputePreserved } from "../api/types";
+import type { BountySummaryResponse, LeaderboardEntry, ArchitectLeaderboardEntry, ComputePreserved } from "../api/types";
 import StatCard from "../components/StatCard";
 import StatusBadge from "../components/StatusBadge";
 import LeaderboardTable from "../components/LeaderboardTable";
+import ArchitectTable from "../components/ArchitectTable";
 import { PageSkeleton } from "../components/LoadingSkeleton";
 import EmptyState from "../components/EmptyState";
 import EscrowAmount from "../components/EscrowAmount";
@@ -14,11 +15,13 @@ export default function Home() {
   const [stats, setStats] = useState<ComputePreserved | null>(null);
   const [bounties, setBounties] = useState<BountySummaryResponse[]>([]);
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
+  const [architects, setArchitects] = useState<ArchitectLeaderboardEntry[]>([]);
 
   useEffect(() => {
     api.getComputePreserved().then(setStats).catch(() => {});
     api.getBounties({ limit: 5 }).then((r) => setBounties(r.items)).catch(() => {});
     api.getLeaderboard(5).then((l) => setLeaders(l.slice(0, 5))).catch(() => {});
+    api.getArchitectLeaderboard(5).then((a) => setArchitects(a.slice(0, 5))).catch(() => {});
   }, []);
 
   if (!stats) return <PageSkeleton />;
@@ -132,7 +135,7 @@ export default function Home() {
 
         {/* Top originators */}
         <div className="card p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-accent-2/30 via-accent-2/10 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-track-originator/30 via-track-originator/10 to-transparent" />
           <div className="flex items-center justify-between mb-5">
             <h3 className="section-heading">Top Originators</h3>
             <Link to="/leaderboard" className="text-xs text-accent hover:text-accent-bright transition-colors font-medium">
@@ -145,6 +148,22 @@ export default function Home() {
             <EmptyState title="No originators yet" />
           )}
         </div>
+      </div>
+
+      {/* Top Architects */}
+      <div className="card p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-track-architect/30 via-track-architect/10 to-transparent" />
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="section-heading">Top Architects</h3>
+          <Link to="/leaderboard" className="text-xs text-accent hover:text-accent-bright transition-colors font-medium">
+            Full leaderboard
+          </Link>
+        </div>
+        {architects.length > 0 ? (
+          <ArchitectTable entries={architects} compact />
+        ) : (
+          <EmptyState title="No architects yet" description="Architects will appear as they submit winning CDGs." />
+        )}
       </div>
     </div>
   );

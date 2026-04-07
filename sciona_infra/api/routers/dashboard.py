@@ -157,3 +157,22 @@ async def get_leaderboard(
         .execute()
     )
     return list(result.data or [])
+
+
+@router.get("/dashboard/architect-leaderboard")
+async def get_architect_leaderboard(
+    limit: int = 50,
+    supabase=Depends(api_deps.get_supabase),
+) -> list[dict]:
+    """Top architects by total earnings from winning CDGs."""
+    result = await (
+        supabase.table("architect_leaderboard")
+        .select(
+            "architect_id, github_login, submission_count, win_count, "
+            "total_earned, bounties_won, distinct_atoms_used"
+        )
+        .order("total_earned", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return list(result.data or [])
