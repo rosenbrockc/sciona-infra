@@ -51,7 +51,7 @@ export default function LeaderboardTable({ entries, compact, badges, badgesByUse
                 />
               </td>
             )}
-            <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">{formatNumber(e.reputation)}</td>
+            <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">{formatNumber(e.reputation ?? 0)}</td>
             {!compact && <td className="py-3 pr-4 text-muted tabular-nums">{e.bounty_count}</td>}
             <td className="py-3 pr-4 font-mono text-white tabular-nums">{formatUsd(e.total_bounty_value)}</td>
             {!compact && <td className="py-3 text-muted tabular-nums">{e.atom_count}</td>}

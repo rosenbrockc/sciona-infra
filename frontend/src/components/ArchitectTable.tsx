@@ -46,7 +46,7 @@ export default function ArchitectTable({ entries, compact }: ArchitectTableProps
                 </Link>
               </td>
               <td className="py-3 pr-4 font-mono text-accent font-medium tabular-nums">
-                {formatNumber(e.reputation)}
+                {formatNumber(e.reputation ?? 0)}
               </td>
               <td className="py-3 pr-4">
                 <span className="font-mono text-white font-medium tabular-nums">{e.win_count}</span>
