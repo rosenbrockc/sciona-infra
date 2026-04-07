@@ -11,24 +11,29 @@ export default function Pagination({ total, limit, offset, onChange }: Paginatio
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center gap-3 mt-4 text-sm">
-      <button
-        disabled={page <= 1}
-        onClick={() => onChange(offset - limit)}
-        className="px-3 py-1 rounded bg-panel-soft border border-border text-muted hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Prev
-      </button>
-      <span className="text-muted">
-        Page {page} of {totalPages}
-      </span>
-      <button
-        disabled={page >= totalPages}
-        onClick={() => onChange(offset + limit)}
-        className="px-3 py-1 rounded bg-panel-soft border border-border text-muted hover:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Next
-      </button>
+    <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+      <p className="text-xs text-muted">
+        Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          disabled={page <= 1}
+          onClick={() => onChange(offset - limit)}
+          className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <span className="text-xs text-muted tabular-nums px-2">
+          {page} / {totalPages}
+        </span>
+        <button
+          disabled={page >= totalPages}
+          onClick={() => onChange(offset + limit)}
+          className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

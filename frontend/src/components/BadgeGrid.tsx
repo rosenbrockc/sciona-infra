@@ -10,11 +10,11 @@ interface BadgeGridProps {
   onBadgeClick?: (badgeId: string) => void;
 }
 
-const TRACK_LABELS: Record<string, string> = {
-  originator: "Originator",
-  architect: "Architect",
-  vanguard: "Vanguard",
-  evangelist: "Evangelist",
+const TRACK_LABELS: Record<string, { label: string; color: string }> = {
+  originator: { label: "Originator", color: "text-warn" },
+  architect: { label: "Architect", color: "text-accent" },
+  vanguard: { label: "Vanguard", color: "text-ok" },
+  evangelist: { label: "Evangelist", color: "text-accent-2" },
 };
 
 const TRACK_ORDER = ["originator", "architect", "vanguard", "evangelist"];
@@ -32,18 +32,18 @@ function getEarnedTier(badgeId: string, earned: UserBadge[]): string | null {
 export default function BadgeGrid({ badges, earned, progress, userId, onBadgeClick }: BadgeGridProps) {
   const byTrack = TRACK_ORDER.map((track) => ({
     track,
-    label: TRACK_LABELS[track] ?? track,
+    ...(TRACK_LABELS[track] ?? { label: track, color: "text-muted" }),
     items: badges.filter((b) => b.track === track),
   })).filter((g) => g.items.length > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {byTrack.map((group) => (
         <div key={group.track}>
-          <h4 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">
-            {group.label} Track
-          </h4>
-          <div className="flex flex-wrap gap-3">
+          <p className={`text-xs font-semibold uppercase tracking-widest mb-3 ${group.color}`}>
+            {group.label}
+          </p>
+          <div className="flex flex-wrap gap-4">
             {group.items.map((badge) => {
               const tier = getEarnedTier(badge.badge_id, earned);
               const prog = progress?.find((p) => p.badge_id === badge.badge_id);
@@ -55,18 +55,18 @@ export default function BadgeGrid({ badges, earned, progress, userId, onBadgeCli
                   tier={tier}
                   userId={userId}
                 >
-                  <div className="text-center">
+                  <div className="text-center w-16">
                     <HexBadge
                       iconSlug={badge.icon_slug}
                       tier={tier}
-                      size={56}
+                      size={52}
                       onClick={onBadgeClick ? () => onBadgeClick(badge.badge_id) : undefined}
                     />
-                    <p className={`text-xs mt-1 ${tier ? "text-gray-300" : "text-muted"}`}>
+                    <p className={`text-[10px] mt-1.5 font-medium leading-tight ${tier ? "text-gray-300" : "text-muted/50"}`}>
                       {badge.display_name}
                     </p>
                     {prog && !tier && (
-                      <p className="text-xs text-muted">{prog.current_value}</p>
+                      <p className="text-[10px] text-muted/40 font-mono">{prog.current_value}</p>
                     )}
                   </div>
                 </BadgeTooltip>
