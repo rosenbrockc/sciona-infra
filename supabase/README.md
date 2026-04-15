@@ -3,6 +3,9 @@
 This directory holds the in-repo Supabase configuration, migrations, and
 operator SQL used by the phased migration plan under `docs/supabase/`.
 
+This repository is the authoritative home for the Supabase schema. Other repos
+should consume this schema rather than maintain independent migration trees.
+
 Phase order:
 
 1. `migrations/*_phase0_foundation_schema.sql`
@@ -25,3 +28,6 @@ supabase db push
 ```
 
 Rollback helpers live in `supabase/sql/phase0_rollback.sql`.
+
+The schema ownership cutover plan for matcher and the provider repos lives in
+`docs/supabase/schema-ownership-consolidation.md`.
