@@ -900,7 +900,16 @@ AS $$
               AND d.language = 'en'
               AND d.jargon_score < 0.4
         )
-        AND EXISTS (SELECT 1 FROM public.atom_audit_rollups ar WHERE ar.atom_id = check_atom_id)
+        AND EXISTS (
+            SELECT 1
+            FROM public.atom_audit_rollups ar
+            WHERE ar.atom_id = check_atom_id
+              AND ar.review_status = 'approved'
+              AND ar.review_semantic_verdict IN ('pass', 'pass_with_limits')
+              AND ar.review_developer_semantics_verdict IN ('pass', 'pass_with_limits')
+              AND ar.trust_readiness IN ('reviewed_with_limits', 'catalog_ready', 'ready_for_manifest_merge', 'ready')
+              AND ar.overall_verdict NOT IN ('broken', 'misleading')
+        )
         AND EXISTS (SELECT 1 FROM public.atom_references r WHERE r.atom_id = check_atom_id);
 $$;
 
