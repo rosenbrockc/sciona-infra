@@ -891,7 +891,23 @@ SET search_path = ''
 AS $$
     SELECT
         EXISTS (SELECT 1 FROM public.atom_io_specs ios WHERE ios.atom_id = check_atom_id)
-        AND EXISTS (SELECT 1 FROM public.atom_parameters p WHERE p.atom_id = check_atom_id)
+        AND (
+            EXISTS (SELECT 1 FROM public.atom_parameters p WHERE p.atom_id = check_atom_id)
+            OR (
+                NOT EXISTS (
+                    SELECT 1
+                    FROM public.atom_io_specs ios_in
+                    WHERE ios_in.atom_id = check_atom_id
+                      AND ios_in.direction = 'input'
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM public.atom_io_specs ios_out
+                    WHERE ios_out.atom_id = check_atom_id
+                      AND ios_out.direction = 'output'
+                )
+            )
+        )
         AND EXISTS (
             SELECT 1
             FROM public.atom_descriptions d

@@ -415,6 +415,134 @@ async def _insert_publishability_requirements(
     assert catalog_row["trust_readiness"] == "ready"
 
 
+async def _insert_zero_input_publishability_requirements(
+    conn: Any,
+    *,
+    atom_id: str,
+    version_id: str,
+    owner_user_id: str,
+) -> None:
+    await conn.execute(
+        """
+        INSERT INTO public.atom_authors (atom_id, user_id, contribution_share)
+        VALUES ($1::uuid, $2::uuid, 1.0)
+        """,
+        atom_id,
+        owner_user_id,
+    )
+    await conn.execute(
+        """
+        INSERT INTO public.atom_io_specs (
+            atom_id,
+            version_id,
+            direction,
+            name,
+            type_desc,
+            ordinal
+        )
+        VALUES ($1::uuid, $2::uuid, 'output', 'result', 'YawLockState', 0)
+        """,
+        atom_id,
+        version_id,
+    )
+    await conn.execute(
+        """
+        INSERT INTO public.atom_descriptions (
+            atom_id,
+            kind,
+            content,
+            language,
+            reviewed,
+            jargon_score
+        )
+        VALUES (
+            $1::uuid,
+            'dejargonized',
+            'Initialize a yaw-lock state bundle with default settings.',
+            'en',
+            TRUE,
+            0.2
+        )
+        """,
+        atom_id,
+    )
+    await conn.execute(
+        """
+        INSERT INTO public.references_registry (
+            ref_id,
+            ref_type,
+            title,
+            authors,
+            year,
+            venue
+        )
+        VALUES (
+            'pronto-yaw-lock',
+            'web',
+            'Pronto yaw lock initialization notes',
+            ARRAY['Sciona']::text[],
+            2026,
+            'Internal review'
+        )
+        ON CONFLICT (ref_id) DO NOTHING
+        """
+    )
+    await conn.execute(
+        """
+        INSERT INTO public.atom_references (
+            atom_id,
+            ref_id,
+            ref_key,
+            title,
+            authors,
+            year,
+            verified
+        )
+        VALUES (
+            $1::uuid,
+            'pronto-yaw-lock',
+            'pronto-yaw-lock',
+            'Pronto yaw lock initialization notes',
+            ARRAY['Sciona']::text[],
+            2026,
+            TRUE
+        )
+        """,
+        atom_id,
+    )
+    await conn.execute(
+        """
+        INSERT INTO public.atom_audit_rollups (
+            atom_id,
+            overall_verdict,
+            risk_tier,
+            risk_score,
+            acceptability_score,
+            acceptability_band,
+            parity_coverage_level,
+            review_status,
+            trust_readiness,
+            review_semantic_verdict,
+            review_developer_semantics_verdict
+        )
+        VALUES (
+            $1::uuid,
+            'trusted',
+            'low',
+            5,
+            95,
+            'acceptable_with_limits',
+            'positive_and_negative',
+            'approved',
+            'reviewed_with_limits',
+            'pass',
+            'pass'
+        )
+        """,
+        atom_id,
+    )
+
+
 async def _seed_publishable_atom(conn: Any) -> dict[str, str]:
     members = await _seed_example_members(conn)
     owner_user_id = str(members["owner"]["user_id"])
@@ -675,6 +803,84 @@ async def test_local_supabase_anon_catalog_and_rpc_access(
         assert rpc_response.status_code == 200, rpc_response.text
         rpc_rows = rpc_response.json()
         assert any(row["fqdn"] == seeded["fqdn"] for row in rpc_rows)
+
+
+@pytest.mark.supabase_local
+@pytest.mark.asyncio
+async def test_local_supabase_zero_input_atom_can_be_publishable(
+    supabase_local_env: dict[str, str],
+) -> None:
+    conn = await _connect(supabase_local_env["db_url"])
+    try:
+        members = await _seed_example_members(conn)
+        owner_user_id = str(members["owner"]["user_id"])
+        atom_id = str(uuid4())
+        version_id = str(uuid4())
+
+        await conn.execute(
+            """
+            INSERT INTO public.atoms (
+                atom_id,
+                fqdn,
+                owner_id,
+                domain_tags,
+                description,
+                status,
+                visibility_tier
+            )
+            VALUES (
+                $1::uuid,
+                $3,
+                $2::uuid,
+                ARRAY['robotics', 'initialization']::text[],
+                'Initialize a yaw-lock state bundle.',
+                'approved',
+                'general'
+            )
+            """,
+            atom_id,
+            owner_user_id,
+            "pkg.zero_input_initializer_" + uuid4().hex[:8],
+        )
+        await conn.execute(
+            """
+            INSERT INTO public.atom_versions (
+                version_id,
+                atom_id,
+                content_hash,
+                semver,
+                fingerprint,
+                source_tar_b64,
+                is_latest
+            )
+            VALUES (
+                $1::uuid,
+                $2::uuid,
+                $3,
+                '0.1.0',
+                repeat('f', 64),
+                encode('zero-input', 'base64'),
+                TRUE
+            )
+            """,
+            version_id,
+            atom_id,
+            "zero-input-hash-" + uuid4().hex[:8],
+        )
+
+        await _insert_zero_input_publishability_requirements(
+            conn,
+            atom_id=atom_id,
+            version_id=version_id,
+            owner_user_id=owner_user_id,
+        )
+
+        assert await conn.fetchval(
+            "SELECT public.atom_is_publishable($1::uuid)",
+            atom_id,
+        ) is True
+    finally:
+        await conn.close()
 
 
 @pytest.mark.supabase_local
