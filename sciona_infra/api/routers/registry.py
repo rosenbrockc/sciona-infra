@@ -192,25 +192,36 @@ async def search_atoms(
     rows = result.data or []
     total = int(result.count or len(rows))
 
-    # Fetch license metadata for these atoms (latest version only)
+    # Fetch license metadata for these atoms (latest version only).
+    # We first grab the latest version_id per atom, then look up license rows.
     atom_ids = [r["atom_id"] for r in rows]
     license_map: dict[str, dict[str, str]] = {}
     if atom_ids:
-        lic_result = await (
-            supabase.table("atom_version_license_metadata")
-            .select(
-                "atom_id, license_expression, license_status,"
-                " version_id, atom_versions!inner(is_latest)"
-            )
+        latest_versions = await (
+            supabase.table("atom_versions")
+            .select("atom_id, version_id")
             .in_("atom_id", atom_ids)
-            .eq("atom_versions.is_latest", True)
+            .eq("is_latest", True)
             .execute()
         )
-        for lr in (lic_result.data or []):
-            license_map[lr["atom_id"]] = {
-                "license_expression": lr.get("license_expression", ""),
-                "license_status": lr.get("license_status", ""),
-            }
+        version_ids = [v["version_id"] for v in (latest_versions.data or [])]
+        atom_by_version = {
+            v["version_id"]: v["atom_id"] for v in (latest_versions.data or [])
+        }
+        if version_ids:
+            lic_result = await (
+                supabase.table("atom_version_license_metadata")
+                .select("version_id, license_expression, license_status")
+                .in_("version_id", version_ids)
+                .execute()
+            )
+            for lr in (lic_result.data or []):
+                aid = atom_by_version.get(lr["version_id"])
+                if aid:
+                    license_map[aid] = {
+                        "license_expression": lr.get("license_expression", ""),
+                        "license_status": lr.get("license_status", ""),
+                    }
 
     items = []
     for r in rows:

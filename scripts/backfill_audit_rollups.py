@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-DEFAULT_MANIFEST_PATH = Path("../ageo-atoms/data/audit_manifest.json")
+DEFAULT_MANIFEST_PATH = Path("../sciona-atoms/data/audit_manifest.json")
 DEFAULT_BATCH_SIZE = 50
 
 
