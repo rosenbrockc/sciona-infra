@@ -10,9 +10,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from sciona_infra.api import deps as api_deps
 from sciona_infra.api.models import (
+    AtomAuditEvidenceResponse,
+    AtomAuditRollupResponse,
     AtomDetailResponse,
     AtomPublishRequest,
     AtomPublishResponse,
+    AtomSourceRepoResponse,
     AtomSummaryResponse,
     AtomVersionResponse,
     PaginatedResponse,
@@ -172,7 +175,11 @@ async def search_atoms(
 
     query = (
         supabase.table("atoms")
-        .select("atom_id, fqdn, description, domain_tags, status", count="exact")
+        .select(
+            "atom_id, fqdn, description, domain_tags, status,"
+            " atom_audit_rollups(overall_verdict, risk_tier, acceptability_band)",
+            count="exact",
+        )
         .eq("status", "approved")
     )
     if q:
@@ -185,16 +192,47 @@ async def search_atoms(
     rows = result.data or []
     total = int(result.count or len(rows))
 
-    items = [
-        AtomSummaryResponse(
-            atom_id=r["atom_id"],
-            fqdn=r["fqdn"],
-            description=r["description"],
-            domain_tags=r["domain_tags"],
-            status=r["status"],
+    # Fetch license metadata for these atoms (latest version only)
+    atom_ids = [r["atom_id"] for r in rows]
+    license_map: dict[str, dict[str, str]] = {}
+    if atom_ids:
+        lic_result = await (
+            supabase.table("atom_version_license_metadata")
+            .select(
+                "atom_id, license_expression, license_status,"
+                " version_id, atom_versions!inner(is_latest)"
+            )
+            .in_("atom_id", atom_ids)
+            .eq("atom_versions.is_latest", True)
+            .execute()
         )
-        for r in rows
-    ]
+        for lr in (lic_result.data or []):
+            license_map[lr["atom_id"]] = {
+                "license_expression": lr.get("license_expression", ""),
+                "license_status": lr.get("license_status", ""),
+            }
+
+    items = []
+    for r in rows:
+        rollup = r.get("atom_audit_rollups") or {}
+        # Supabase may return a list with one item for 1-to-1 joins
+        if isinstance(rollup, list):
+            rollup = rollup[0] if rollup else {}
+        lic = license_map.get(r["atom_id"], {})
+        items.append(
+            AtomSummaryResponse(
+                atom_id=r["atom_id"],
+                fqdn=r["fqdn"],
+                description=r["description"],
+                domain_tags=r["domain_tags"],
+                status=r["status"],
+                overall_verdict=rollup.get("overall_verdict", ""),
+                risk_tier=rollup.get("risk_tier", ""),
+                acceptability_band=rollup.get("acceptability_band", ""),
+                license_expression=lic.get("license_expression", ""),
+                license_status=lic.get("license_status", ""),
+            )
+        )
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -203,11 +241,12 @@ async def get_atom(
     fqdn: str,
     supabase=Depends(api_deps.get_supabase),
 ) -> AtomDetailResponse:
-    """Get atom metadata + latest version."""
+    """Get atom metadata + latest version + audit data + source repo."""
     atom_result = await (
         supabase.table("atoms")
         .select(
-            "atom_id, fqdn, description, domain_tags, status, created_at, owner_id"
+            "atom_id, fqdn, description, domain_tags, status, created_at,"
+            " owner_id, source_repo_id, source_module_path, source_symbol"
         )
         .eq("fqdn", fqdn)
         .maybe_single()
@@ -238,6 +277,70 @@ async def get_atom(
     )
     latest = _first_row(latest_result.data)
 
+    # Audit rollup
+    rollup_result = await (
+        supabase.table("atom_audit_rollups")
+        .select("*")
+        .eq("atom_id", atom["atom_id"])
+        .maybe_single()
+        .execute()
+    )
+    rollup_row = _first_row(rollup_result.data)
+    audit_rollup = None
+    if rollup_row:
+        audit_rollup = AtomAuditRollupResponse(
+            **{k: v for k, v in rollup_row.items() if k != "atom_id"}
+        )
+
+    # Audit evidence (most recent per type)
+    evidence_result = await (
+        supabase.table("atom_audit_evidence")
+        .select(
+            "evidence_id, audit_type, passed, status, details,"
+            " source_kind, runner_version, run_duration_ms,"
+            " source_revision, upstream_version, created_at"
+        )
+        .eq("atom_id", atom["atom_id"])
+        .order("created_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+    audit_evidence = [
+        AtomAuditEvidenceResponse(**dict(e)) for e in (evidence_result.data or [])
+    ]
+
+    # License metadata (for latest version)
+    license_expression = ""
+    license_status = ""
+    license_family = ""
+    if latest:
+        lic_result = await (
+            supabase.table("atom_version_license_metadata")
+            .select("license_expression, license_status, license_family")
+            .eq("version_id", latest["version_id"])
+            .maybe_single()
+            .execute()
+        )
+        lic_row = _first_row(lic_result.data)
+        if lic_row:
+            license_expression = lic_row.get("license_expression", "")
+            license_status = lic_row.get("license_status", "")
+            license_family = lic_row.get("license_family", "")
+
+    # Source repository
+    source_repo = None
+    if atom.get("source_repo_id"):
+        repo_result = await (
+            supabase.table("atom_source_repositories")
+            .select("repo_url, repo_name, vcs_provider, default_branch")
+            .eq("source_repo_id", atom["source_repo_id"])
+            .maybe_single()
+            .execute()
+        )
+        repo_row = _first_row(repo_result.data)
+        if repo_row:
+            source_repo = AtomSourceRepoResponse(**dict(repo_row))
+
     return AtomDetailResponse(
         atom_id=atom["atom_id"],
         fqdn=atom["fqdn"],
@@ -246,5 +349,13 @@ async def get_atom(
         status=atom["status"],
         owner_github_login=owner["github_login"],
         latest_version=AtomVersionResponse(**dict(latest)) if latest else None,
+        license_expression=license_expression,
+        license_status=license_status,
+        license_family=license_family,
+        source_module_path=atom.get("source_module_path", ""),
+        source_symbol=atom.get("source_symbol", ""),
+        source_repo=source_repo,
+        audit_rollup=audit_rollup,
+        audit_evidence=audit_evidence,
         created_at=atom["created_at"],
     )

@@ -77,6 +77,53 @@ class AtomPublishResponse(BaseModel):
     is_new_atom: bool
 
 
+class AtomAuditRollupResponse(BaseModel):
+    overall_verdict: str = "unknown"
+    structural_status: str = "unknown"
+    runtime_status: str = "unknown"
+    semantic_status: str = "unknown"
+    developer_semantics_status: str = "unknown"
+    risk_tier: str = "medium"
+    risk_score: int = 0
+    risk_dimensions: dict = Field(default_factory=dict)
+    risk_reasons: list[str] = Field(default_factory=list)
+    acceptability_score: int = 0
+    acceptability_band: str = "unknown"
+    parity_coverage_level: str = "unknown"
+    parity_test_status: str = "unknown"
+    parity_fixture_count: int = 0
+    parity_case_count: int = 0
+    review_status: str = "missing"
+    review_semantic_verdict: str = "unknown"
+    review_developer_semantics_verdict: str = "unknown"
+    review_limitations: list[str] = Field(default_factory=list)
+    review_required_actions: list[str] = Field(default_factory=list)
+    trust_readiness: str = "not_ready"
+    trust_blockers: list[str] = Field(default_factory=list)
+    updated_at: datetime | None = None
+
+
+class AtomAuditEvidenceResponse(BaseModel):
+    evidence_id: UUID
+    audit_type: str
+    passed: bool
+    status: str = "completed"
+    details: dict = Field(default_factory=dict)
+    source_kind: str = "automated"
+    runner_version: str = ""
+    run_duration_ms: int | None = None
+    source_revision: str = ""
+    upstream_version: str = ""
+    created_at: datetime
+
+
+class AtomSourceRepoResponse(BaseModel):
+    repo_url: str
+    repo_name: str
+    vcs_provider: str = "github"
+    default_branch: str = "main"
+
+
 class AtomDetailResponse(BaseModel):
     atom_id: UUID
     fqdn: str
@@ -85,6 +132,14 @@ class AtomDetailResponse(BaseModel):
     status: str
     owner_github_login: str
     latest_version: AtomVersionResponse | None = None
+    license_expression: str = ""
+    license_status: str = ""
+    license_family: str = ""
+    source_module_path: str = ""
+    source_symbol: str = ""
+    source_repo: AtomSourceRepoResponse | None = None
+    audit_rollup: AtomAuditRollupResponse | None = None
+    audit_evidence: list[AtomAuditEvidenceResponse] = Field(default_factory=list)
     created_at: datetime
 
 
@@ -104,6 +159,11 @@ class AtomSummaryResponse(BaseModel):
     domain_tags: list[str]
     status: str
     latest_semver: str = ""
+    overall_verdict: str = ""
+    risk_tier: str = ""
+    acceptability_band: str = ""
+    license_expression: str = ""
+    license_status: str = ""
 
 
 # ---------------------------------------------------------------------------

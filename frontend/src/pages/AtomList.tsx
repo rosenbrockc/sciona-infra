@@ -4,9 +4,62 @@ import { api } from "../api/client";
 import type { AtomSummaryResponse } from "../api/types";
 import Pagination from "../components/Pagination";
 import EmptyState from "../components/EmptyState";
-import { CardSkeleton } from "../components/LoadingSkeleton";
+import { TableSkeleton } from "../components/LoadingSkeleton";
 
-const LIMIT = 12;
+const LIMIT = 20;
+
+function VerdictBadge({ value }: { value: string }) {
+  if (!value) return <span className="text-muted text-xs">—</span>;
+  const colors: Record<string, string> = {
+    trusted: "text-ok bg-ok/10 border-ok/20",
+    acceptable_with_limits: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    limited_acceptability: "text-orange-400 bg-orange-400/10 border-orange-400/20",
+    misleading: "text-bad bg-bad/10 border-bad/20",
+    broken: "text-bad bg-bad/10 border-bad/20",
+    unknown: "text-muted bg-muted/10 border-muted/20",
+  };
+  const cls = colors[value] ?? colors.unknown;
+  const label = value.replace(/_/g, " ");
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+function RiskBadge({ value }: { value: string }) {
+  if (!value) return <span className="text-muted text-xs">—</span>;
+  const colors: Record<string, string> = {
+    low: "text-ok bg-ok/10 border-ok/20",
+    medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    high: "text-bad bg-bad/10 border-bad/20",
+  };
+  const cls = colors[value] ?? "text-muted bg-muted/10 border-muted/20";
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
+      {value}
+    </span>
+  );
+}
+
+function LicenseBadge({ expression, status }: { expression: string; status: string }) {
+  if (!expression) return <span className="text-muted text-xs">—</span>;
+  const colors: Record<string, string> = {
+    approved: "text-ok bg-ok/10 border-ok/20",
+    restricted: "text-bad bg-bad/10 border-bad/20",
+    needs_legal_review: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    unknown: "text-muted bg-muted/10 border-muted/20",
+  };
+  const cls = colors[status] ?? colors.unknown;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${cls}`}>
+      <svg className="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+      {expression}
+    </span>
+  );
+}
 
 export default function AtomList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -59,8 +112,8 @@ export default function AtomList() {
       </form>
 
       {atoms === null ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+        <div className="card p-5">
+          <TableSkeleton rows={8} cols={5} />
         </div>
       ) : atoms.length === 0 ? (
         <div className="card">
@@ -71,35 +124,54 @@ export default function AtomList() {
         </div>
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {atoms.map((a) => (
-              <Link
-                key={a.fqdn}
-                to={`/atoms/${a.fqdn}`}
-                className="card-hover p-5 group relative overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-[1px] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-accent/40 via-accent/20 to-transparent" />
-                <p className="font-mono text-accent text-sm mb-1.5 group-hover:text-accent-bright transition-colors">
-                  {a.fqdn}
-                </p>
-                <p className="text-sm text-gray-400 line-clamp-2 mb-4 leading-relaxed">
-                  {a.description || "No description provided."}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1.5 flex-wrap">
-                    {a.domain_tags.slice(0, 3).map((t) => (
-                      <span key={t} className="tag">{t}</span>
-                    ))}
-                    {a.domain_tags.length > 3 && (
-                      <span className="tag">+{a.domain_tags.length - 3}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-mono text-muted">
-                    {a.latest_semver ? `v${a.latest_semver}` : a.status}
-                  </span>
-                </div>
-              </Link>
-            ))}
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left border-b border-border">
+                    <th className="px-4 py-3 section-heading">Atom</th>
+                    <th className="px-4 py-3 section-heading">License</th>
+                    <th className="px-4 py-3 section-heading">Verdict</th>
+                    <th className="px-4 py-3 section-heading">Risk</th>
+                    <th className="px-4 py-3 section-heading">Acceptability</th>
+                    <th className="px-4 py-3 section-heading text-right">Version</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {atoms.map((a) => (
+                    <tr key={a.fqdn} className="border-b border-border/50 hover:bg-panel-soft/30 transition-colors group">
+                      <td className="px-4 py-3">
+                        <Link to={`/atoms/${a.fqdn}`} className="block">
+                          <span className="font-mono text-accent text-sm group-hover:text-accent-bright transition-colors">
+                            {a.fqdn}
+                          </span>
+                          <p className="text-xs text-muted mt-0.5 line-clamp-1 max-w-md">
+                            {a.description || "No description"}
+                          </p>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <LicenseBadge expression={a.license_expression} status={a.license_status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <VerdictBadge value={a.overall_verdict} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <RiskBadge value={a.risk_tier} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <VerdictBadge value={a.acceptability_band} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-xs font-mono text-muted">
+                          {a.latest_semver ? `v${a.latest_semver}` : a.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           <Pagination
             total={total}

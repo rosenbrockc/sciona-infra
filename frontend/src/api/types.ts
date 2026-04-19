@@ -26,6 +26,53 @@ export interface BountySummaryResponse {
   domain_tags: string[];
 }
 
+export interface AtomAuditRollup {
+  overall_verdict: string;
+  structural_status: string;
+  runtime_status: string;
+  semantic_status: string;
+  developer_semantics_status: string;
+  risk_tier: string;
+  risk_score: number;
+  risk_dimensions: Record<string, any>;
+  risk_reasons: string[];
+  acceptability_score: number;
+  acceptability_band: string;
+  parity_coverage_level: string;
+  parity_test_status: string;
+  parity_fixture_count: number;
+  parity_case_count: number;
+  review_status: string;
+  review_semantic_verdict: string;
+  review_developer_semantics_verdict: string;
+  review_limitations: string[];
+  review_required_actions: string[];
+  trust_readiness: string;
+  trust_blockers: string[];
+  updated_at: string | null;
+}
+
+export interface AtomAuditEvidence {
+  evidence_id: string;
+  audit_type: string;
+  passed: boolean;
+  status: string;
+  details: Record<string, any>;
+  source_kind: string;
+  runner_version: string;
+  run_duration_ms: number | null;
+  source_revision: string;
+  upstream_version: string;
+  created_at: string;
+}
+
+export interface AtomSourceRepo {
+  repo_url: string;
+  repo_name: string;
+  vcs_provider: string;
+  default_branch: string;
+}
+
 export interface AtomDetailResponse {
   atom_id: string;
   fqdn: string;
@@ -34,6 +81,14 @@ export interface AtomDetailResponse {
   status: string;
   owner_github_login: string;
   latest_version: AtomVersionResponse | null;
+  license_expression: string;
+  license_status: string;
+  license_family: string;
+  source_module_path: string;
+  source_symbol: string;
+  source_repo: AtomSourceRepo | null;
+  audit_rollup: AtomAuditRollup | null;
+  audit_evidence: AtomAuditEvidence[];
   created_at: string;
 }
 
@@ -44,6 +99,11 @@ export interface AtomSummaryResponse {
   domain_tags: string[];
   status: string;
   latest_semver: string;
+  overall_verdict: string;
+  risk_tier: string;
+  acceptability_band: string;
+  license_expression: string;
+  license_status: string;
 }
 
 export interface AtomVersionResponse {
