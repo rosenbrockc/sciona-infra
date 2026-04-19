@@ -92,8 +92,8 @@ function SourceLink({ atom }: { atom: AtomDetailResponse }) {
   );
 }
 
-function AuditEvidenceTable({ evidence }: { evidence: AtomAuditEvidence[] }) {
-  if (evidence.length === 0) {
+function AuditEvidenceTable({ evidence }: { evidence: AtomAuditEvidence[] | undefined }) {
+  if (!evidence || evidence.length === 0) {
     return <p className="text-muted text-sm">No audit evidence recorded yet.</p>;
   }
 
