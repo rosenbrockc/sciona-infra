@@ -143,7 +143,7 @@ export default function AtomList() {
                       <td className="px-4 py-3">
                         <Link to={`/atoms/${a.fqdn}`} className="block">
                           <span className="font-mono text-accent text-sm group-hover:text-accent-bright transition-colors">
-                            {a.fqdn}
+                            {a.fqdn.replace(/^sciona\.atoms\./, "")}
                           </span>
                           <p className="text-xs text-muted mt-0.5 line-clamp-1 max-w-md">
                             {a.description || "No description"}
