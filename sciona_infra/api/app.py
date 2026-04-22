@@ -132,6 +132,7 @@ def create_app() -> FastAPI:
     from sciona_infra.api.routers.registry import router as registry_router
     from sciona_infra.api.routers.badges import router as badges_router
     from sciona_infra.api.routers.referrals import router as referrals_router
+    from sciona_infra.api.routers.heuristics import router as heuristics_router
     from sciona_infra.api.routers.scim import router as scim_router
     from sciona_infra.api.routers.verification import router as verification_router
 
@@ -150,6 +151,7 @@ def create_app() -> FastAPI:
     application.include_router(dashboard_router, tags=["dashboard"])
     application.include_router(badges_router, tags=["badges"])
     application.include_router(referrals_router, tags=["referrals"])
+    application.include_router(heuristics_router, prefix="/heuristics", tags=["heuristics"])
     application.include_router(scim_router, tags=["scim"])
 
     setup_telemetry(application)

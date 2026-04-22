@@ -272,6 +272,57 @@ class PaginatedResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Heuristics
+# ---------------------------------------------------------------------------
+
+
+class HeuristicRegistryEntry(BaseModel):
+    heuristic_id: str
+    display_name: str
+    dejargonized_meaning: str = ""
+    evidence_type: str
+    value_kind: str = ""
+    value_shape: str = ""
+    confidence: float = 1.0
+    producer_kind: str = "atom_output"
+    applicability_scope: str = "cross_family"
+    supported_action_classes: list[str] = Field(default_factory=list)
+    provenance_requirements: list[str] = Field(default_factory=list)
+    domain: str = ""
+    family: str = ""
+    source_atom_fqdn: str = ""
+    uncertainty_notes: list[str] = Field(default_factory=list)
+    references: list = Field(default_factory=list)
+
+
+class BindingEvidenceItem(BaseModel):
+    evidence_id: str = ""
+    heuristic_id: str = ""
+    metric_name: str = ""
+    metric_value: float | None = None
+    threshold: float | None = None
+    confidence: float = 0.5
+    action_class: str = "precondition"
+    reasoning: str = ""
+    alternatives: list = Field(default_factory=list)
+    thresholds_applied: dict = Field(default_factory=dict)
+    provenance: str = ""
+
+
+class BindingEvidenceResponse(BaseModel):
+    binding_id: str
+    node_id: str = ""
+    bound_artifact_fqdn: str = ""
+    binding_confidence: float = 0.0
+    binding_source: str = ""
+    action_class: str | None = None
+    status: str = "active"
+    alternatives: list = Field(default_factory=list)
+    evidence_summary: dict = Field(default_factory=dict)
+    evidence: list[BindingEvidenceItem] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
 # Badges
 # ---------------------------------------------------------------------------
 
