@@ -10,14 +10,19 @@ import pytest
 from sciona_infra.api.models import (
     AtomPublishRequest,
     AtomPublishResponse,
+    AssetEntry,
     BountyCreateRequest,
     BountyResponse,
     CatalogEntry,
     DeviceFlowResponse,
     PaginatedResponse,
+    StateArtifactMetadata,
+    StateArtifactPublishRequest,
+    StatePortDeclaration,
     SubmissionRequest,
     TokenResponse,
     UserResponse,
+    VerifyAssetsRequest,
 )
 
 
@@ -72,6 +77,49 @@ class TestRegistryModels:
             is_new_atom=True,
         )
         assert resp.is_new_atom
+
+    def test_publish_request_accepts_state_ports(self):
+        req = AtomPublishRequest(
+            fqdn="pkg.mod.ner",
+            semver="1.0.0",
+            source_tar_b64="dGVzdA==",
+            fingerprint="a" * 64,
+            state_ports=[
+                StatePortDeclaration(
+                    port_name="taxonomy",
+                    type_desc="JSON entity taxonomy",
+                    accepted_formats=["json"],
+                    required_metadata={"label_schema": {"kind": "entity_taxonomy"}},
+                )
+            ],
+        )
+        assert req.state_ports[0].port_name == "taxonomy"
+
+    def test_state_artifact_publish_request(self):
+        req = StateArtifactPublishRequest(
+            fqdn="resources.taxonomy.en",
+            semver="1.0.0",
+            description="English taxonomy",
+            assets=[
+                AssetEntry(
+                    asset_path="taxonomy.json",
+                    byte_size=2,
+                    sha256="b" * 64,
+                    format="json",
+                )
+            ],
+            metadata=StateArtifactMetadata(
+                resource_family="taxonomy",
+                language_tags=["en"],
+            ),
+        )
+        assert req.assets[0].format == "json"
+        assert req.metadata.resource_family == "taxonomy"
+
+    def test_verify_assets_request_defaults(self):
+        req = VerifyAssetsRequest()
+        assert req.storage_uris == {}
+        assert req.write_audit_evidence is True
 
 
 class TestBountyModels:

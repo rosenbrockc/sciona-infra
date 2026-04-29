@@ -1,0 +1,29 @@
+{
+  "language": "en",
+  "schema": {
+    "kind": "entity_taxonomy",
+    "version": "1.0"
+  },
+  "entries": [
+    {"label": "company", "entity_type": "Organization"},
+    {"label": "corporation", "entity_type": "Organization"},
+    {"label": "inc", "entity_type": "Organization"},
+    {"label": "llc", "entity_type": "Organization"},
+    {"label": "ltd", "entity_type": "Organization"},
+    {"label": "university", "entity_type": "EducationOrganization"},
+    {"label": "college", "entity_type": "EducationOrganization"},
+    {"label": "hospital", "entity_type": "HealthcareOrganization"},
+    {"label": "clinic", "entity_type": "HealthcareOrganization"},
+    {"label": "bank", "entity_type": "FinancialInstitution"},
+    {"label": "credit union", "entity_type": "FinancialInstitution"},
+    {"label": "foundation", "entity_type": "NonprofitOrganization"},
+    {"label": "charity", "entity_type": "NonprofitOrganization"},
+    {"label": "agency", "entity_type": "GovernmentAgency"},
+    {"label": "department", "entity_type": "GovernmentAgency"},
+    {"label": "ministry", "entity_type": "GovernmentAgency"},
+    {"label": "laboratory", "entity_type": "ResearchOrganization"},
+    {"label": "institute", "entity_type": "ResearchOrganization"},
+    {"label": "association", "entity_type": "TradeAssociation"},
+    {"label": "cooperative", "entity_type": "Cooperative"}
+  ]
+}

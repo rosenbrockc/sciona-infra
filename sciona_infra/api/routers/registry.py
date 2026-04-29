@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from typing import Any
 from uuid import UUID
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -19,6 +22,7 @@ from sciona_infra.api.models import (
     AtomSummaryResponse,
     AtomVersionResponse,
     PaginatedResponse,
+    StatePortDeclaration,
 )
 
 UserRow = getattr(api_deps, "UserProfile", None) or api_deps.UserRow
@@ -35,6 +39,59 @@ def _first_row(data: Any) -> dict[str, Any] | None:
     if isinstance(data, dict):
         return data
     return None
+
+
+async def _insert_state_ports_for_unified_artifact(
+    *,
+    supabase: Any,
+    fqdn: str,
+    content_hash: str,
+    state_ports: list[StatePortDeclaration],
+) -> None:
+    if not state_ports:
+        return
+
+    artifact_result = await (
+        supabase.table("artifacts")
+        .select("artifact_id")
+        .eq("fqdn", fqdn)
+        .maybe_single()
+        .execute()
+    )
+    artifact_row = _first_row(artifact_result.data)
+    if not artifact_row:
+        logger.warning(
+            "state ports declared for %s but no unified artifact row found; ports not persisted",
+            fqdn,
+        )
+        return
+
+    artifact_id = str(artifact_row["artifact_id"])
+    version_result = await (
+        supabase.table("artifact_versions")
+        .select("version_id")
+        .eq("artifact_id", artifact_id)
+        .eq("content_hash", content_hash)
+        .maybe_single()
+        .execute()
+    )
+    version_row = _first_row(version_result.data)
+    version_id = str(version_row["version_id"]) if version_row else None
+
+    payloads = [
+        {
+            "artifact_id": artifact_id,
+            "version_id": version_id,
+            "port_name": port.port_name,
+            "type_desc": port.type_desc,
+            "accepted_formats": port.accepted_formats,
+            "required_metadata": port.required_metadata,
+            "required": port.required,
+            "ordinal": port.ordinal,
+        }
+        for port in state_ports
+    ]
+    await supabase.table("artifact_state_ports").insert(payloads).execute()
 
 
 @router.post("")
@@ -121,6 +178,13 @@ async def publish_atom(
         content_hash=content_hash,
         semver=body.semver,
         is_new_atom=is_new,
+    )
+
+    await _insert_state_ports_for_unified_artifact(
+        supabase=supabase,
+        fqdn=body.fqdn,
+        content_hash=content_hash,
+        state_ports=body.state_ports,
     )
 
     # Badge + referral hooks (non-blocking)

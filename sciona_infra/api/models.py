@@ -44,6 +44,57 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
+class AuthorShare(BaseModel):
+    github_login: str
+    contribution_share: float = 1.0
+
+
+class AssetEntry(BaseModel):
+    asset_id: UUID | None = None
+    asset_path: str
+    byte_size: int = Field(..., ge=0)
+    sha256: str = Field(..., pattern=r"^[0-9a-f]{64}$")
+    format: str
+    media_type: str = "application/octet-stream"
+    storage_uri: str = ""
+    compression: str = ""
+    mmap_safe: bool = False
+    loader_name: str = ""
+
+
+class StateArtifactMetadata(BaseModel):
+    resource_family: str = ""
+    language_tags: list[str] = Field(default_factory=list)
+    vocabulary_size: int | None = None
+    embedding_dim: int | None = None
+    max_sequence_length: int | None = None
+    label_schema: dict = Field(default_factory=dict)
+    training_data_summary: str = ""
+    provenance_summary: str = ""
+    intended_use: str = ""
+    limitations: list[str] = Field(default_factory=list)
+    legal_basis: dict = Field(default_factory=dict)
+    deterministic_output_precision: int = 6
+
+
+class StatePortDeclaration(BaseModel):
+    port_name: str
+    type_desc: str
+    accepted_formats: list[str] = Field(default_factory=list)
+    required_metadata: dict = Field(default_factory=dict)
+    required: bool = True
+    ordinal: int = 0
+
+
+class DependencyPin(BaseModel):
+    dependency_artifact_fqdn: str
+    dependency_content_hash: str = Field(..., pattern=r"^[0-9a-f]{64}$")
+    dependency_role: str
+    port_name: str = ""
+    optional: bool = False
+    binding_metadata: dict = Field(default_factory=dict)
+
+
 # ---------------------------------------------------------------------------
 # Atoms / Registry
 # ---------------------------------------------------------------------------
@@ -61,11 +112,7 @@ class AtomPublishRequest(BaseModel):
         ..., description="Full SHA-256 AST fingerprint (64 hex chars)."
     )
     authors: list[AuthorShare] | None = None
-
-
-class AuthorShare(BaseModel):
-    github_login: str
-    contribution_share: float = 1.0
+    state_ports: list[StatePortDeclaration] = Field(default_factory=list)
 
 
 class AtomPublishResponse(BaseModel):
@@ -164,6 +211,69 @@ class AtomSummaryResponse(BaseModel):
     acceptability_band: str = ""
     license_expression: str = ""
     license_status: str = ""
+
+
+class StateArtifactPublishRequest(BaseModel):
+    fqdn: str
+    semver: str
+    description: str = ""
+    assets: list[AssetEntry] = Field(default_factory=list, min_length=1)
+    metadata: StateArtifactMetadata = Field(default_factory=StateArtifactMetadata)
+    dependencies: list[DependencyPin] = Field(default_factory=list)
+    declared_content_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+
+class StateArtifactPublishResponse(BaseModel):
+    artifact_id: UUID
+    version_id: UUID
+    fqdn: str
+    content_hash: str
+    semver: str
+    is_new_artifact: bool
+    assets: list[AssetEntry] = Field(default_factory=list)
+    presigned_uploads: dict[str, str] = Field(default_factory=dict)
+
+
+class PresignAssetsRequest(BaseModel):
+    assets: list[AssetEntry] = Field(default_factory=list)
+
+
+class VerifyAssetsRequest(BaseModel):
+    storage_uris: dict[str, str] = Field(default_factory=dict)
+    local_base_path: str = ""
+    write_audit_evidence: bool = True
+
+
+class VerifyAssetResult(BaseModel):
+    asset_id: UUID | None = None
+    asset_path: str
+    passed: bool
+    expected_sha256: str
+    actual_sha256: str = ""
+    scan_passed: bool = False
+    errors: list[str] = Field(default_factory=list)
+
+
+class VerifyAssetsResponse(BaseModel):
+    artifact_id: UUID
+    version_id: UUID
+    passed: bool
+    results: list[VerifyAssetResult] = Field(default_factory=list)
+
+
+class ArtifactDocumentResponse(BaseModel):
+    artifact: dict | None = None
+    source_repository: dict | None = None
+    descriptions: list[dict] | None = None
+    io_specs: list[dict] | None = None
+    parameters: list[dict] | None = None
+    references: list[dict] | None = None
+    audit_rollup: dict | None = None
+    audit_latest: list[dict] | None = None
+    assets: list[dict] | None = None
+    state_metadata: list[dict] | None = None
+    state_ports: list[dict] | None = None
+    dependencies: list[dict] | None = None
 
 
 # ---------------------------------------------------------------------------
