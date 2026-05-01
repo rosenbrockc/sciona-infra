@@ -964,3 +964,396 @@ async def test_local_supabase_member_seed_and_publish_atom_routine(
         assert publishable_row["is_publishable"] is True
     finally:
         await conn.close()
+
+
+@pytest.mark.supabase_local
+@pytest.mark.asyncio
+async def test_local_supabase_physics_write_plan_repeatable_loader_surfaces(
+    supabase_local_env: dict[str, str],
+) -> None:
+    conn = await _connect(supabase_local_env["db_url"])
+    try:
+        suffix = uuid4().hex[:8]
+        source_uri = f"local://physics-write-plan/{suffix}"
+        payload_sha256 = ("0" * 56) + suffix
+        artifact_fqdn = f"physics.write_plan_{suffix}"
+
+        snapshot_id = await conn.fetchval(
+            """
+            INSERT INTO public.physics_ingest_snapshots (
+                source_system,
+                source_version,
+                source_uri,
+                adapter_name,
+                adapter_version,
+                license_expression,
+                provenance_summary,
+                payload_sha256,
+                payload
+            )
+            VALUES (
+                'physics_derivation_graph',
+                'local-test',
+                $1,
+                'local-write-plan-test',
+                '0.1.0',
+                'CC0-1.0',
+                'local write-plan integration test',
+                $2,
+                '{"kind":"write_plan"}'::jsonb
+            )
+            RETURNING snapshot_id
+            """,
+            source_uri,
+            payload_sha256,
+        )
+        candidate_id = await conn.fetchval(
+            """
+            INSERT INTO public.physics_equation_candidates (
+                snapshot_id,
+                source_candidate_id,
+                source_entity_uri,
+                source_label,
+                raw_formula,
+                raw_formula_format,
+                candidate_status,
+                parse_confidence
+            )
+            VALUES (
+                $1::uuid,
+                'pdg-candidate-1',
+                'local://entity/write-plan',
+                'Write plan candidate',
+                'F = m*a',
+                'plain_text',
+                'parsed',
+                0.95
+            )
+            RETURNING candidate_id
+            """,
+            str(snapshot_id),
+        )
+        artifact_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifacts (
+                artifact_kind,
+                fqdn,
+                status,
+                visibility_tier,
+                description,
+                source_kind
+            )
+            VALUES (
+                'cdg',
+                $1,
+                'approved',
+                'general',
+                'Local physics write-plan integration artifact',
+                'generated'
+            )
+            RETURNING artifact_id
+            """,
+            artifact_fqdn,
+        )
+        version_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifact_versions (
+                artifact_id,
+                content_hash,
+                semver,
+                is_latest
+            )
+            VALUES (
+                $1::uuid,
+                $2,
+                '0.1.0',
+                TRUE
+            )
+            RETURNING version_id
+            """,
+            str(artifact_id),
+            "write-plan-hash-" + suffix,
+        )
+
+        expression_ids = []
+        for source_expression_id, raw_formula in (
+            ("pdg-expr-source", "F = m*a"),
+            ("pdg-expr-target", "a = F/m"),
+        ):
+            expression_ids.append(
+                await conn.fetchval(
+                    """
+                    INSERT INTO public.artifact_symbolic_expressions (
+                        artifact_id,
+                        version_id,
+                        candidate_id,
+                        expression_kind,
+                        expression_role,
+                        raw_formula,
+                        raw_formula_format,
+                        source_expression_id,
+                        parse_status,
+                        review_status,
+                        validation_status
+                    )
+                    VALUES (
+                        $1::uuid,
+                        $2::uuid,
+                        $3::uuid,
+                        'equation',
+                        'primary',
+                        $4,
+                        'plain_text',
+                        $5,
+                        'parsed',
+                        'automated_pass',
+                        'passed'
+                    )
+                    RETURNING expression_id
+                    """,
+                    str(artifact_id),
+                    str(version_id),
+                    str(candidate_id),
+                    raw_formula,
+                    source_expression_id,
+                )
+            )
+
+        relationship_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifact_relationships (
+                source_expression_id,
+                target_expression_id,
+                relationship_kind,
+                source_node_id,
+                target_node_id,
+                inference_rule_id,
+                source_kind,
+                confidence
+            )
+            VALUES (
+                $1::uuid,
+                $2::uuid,
+                'derives_from',
+                'node-source',
+                'node-target',
+                'rule-1',
+                'physics_derivation_graph',
+                0.5
+            )
+            ON CONFLICT (
+                source_kind,
+                relationship_kind,
+                source_expression_id,
+                target_expression_id,
+                source_node_id,
+                target_node_id,
+                inference_rule_id
+            )
+            WHERE source_kind = 'physics_derivation_graph'
+              AND source_expression_id IS NOT NULL
+              AND target_expression_id IS NOT NULL
+              AND source_node_id <> ''
+              AND target_node_id <> ''
+              AND inference_rule_id <> ''
+            DO UPDATE SET confidence = EXCLUDED.confidence
+            RETURNING relationship_id
+            """,
+            str(expression_ids[0]),
+            str(expression_ids[1]),
+        )
+        repeated_relationship_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifact_relationships (
+                source_expression_id,
+                target_expression_id,
+                relationship_kind,
+                source_node_id,
+                target_node_id,
+                inference_rule_id,
+                source_kind,
+                confidence
+            )
+            VALUES (
+                $1::uuid,
+                $2::uuid,
+                'derives_from',
+                'node-source',
+                'node-target',
+                'rule-1',
+                'physics_derivation_graph',
+                0.9
+            )
+            ON CONFLICT (
+                source_kind,
+                relationship_kind,
+                source_expression_id,
+                target_expression_id,
+                source_node_id,
+                target_node_id,
+                inference_rule_id
+            )
+            WHERE source_kind = 'physics_derivation_graph'
+              AND source_expression_id IS NOT NULL
+              AND target_expression_id IS NOT NULL
+              AND source_node_id <> ''
+              AND target_node_id <> ''
+              AND inference_rule_id <> ''
+            DO UPDATE SET confidence = EXCLUDED.confidence
+            RETURNING relationship_id
+            """,
+            str(expression_ids[0]),
+            str(expression_ids[1]),
+        )
+        assert str(repeated_relationship_id) == str(relationship_id)
+        assert (
+            await conn.fetchval(
+                """
+                SELECT COUNT(*)
+                FROM public.artifact_relationships
+                WHERE source_kind = 'physics_derivation_graph'
+                  AND source_node_id = 'node-source'
+                  AND target_node_id = 'node-target'
+                  AND inference_rule_id = 'rule-1'
+                """
+            )
+            == 1
+        )
+        relationship_confidence = await conn.fetchval(
+            """
+            SELECT confidence
+            FROM public.artifact_relationships
+            WHERE relationship_id = $1::uuid
+            """,
+            str(relationship_id),
+        )
+        assert abs(relationship_confidence - 0.9) < 0.000001
+
+        bound_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifact_validity_bounds (
+                artifact_id,
+                version_id,
+                expression_id,
+                scope,
+                bound_kind,
+                variable_name,
+                lower_value,
+                upper_value,
+                evidence_ref_key,
+                confidence
+            )
+            VALUES (
+                $1::uuid,
+                $2::uuid,
+                $3::uuid,
+                'expression',
+                'domain',
+                'm',
+                0.0,
+                NULL,
+                'pdg-bound-1',
+                'medium'
+            )
+            ON CONFLICT (
+                expression_id,
+                scope,
+                bound_kind,
+                variable_name,
+                evidence_ref_key
+            )
+            WHERE expression_id IS NOT NULL
+              AND evidence_ref_key <> ''
+            DO UPDATE SET confidence = EXCLUDED.confidence
+            RETURNING bound_id
+            """,
+            str(artifact_id),
+            str(version_id),
+            str(expression_ids[0]),
+        )
+        repeated_bound_id = await conn.fetchval(
+            """
+            INSERT INTO public.artifact_validity_bounds (
+                artifact_id,
+                version_id,
+                expression_id,
+                scope,
+                bound_kind,
+                variable_name,
+                lower_value,
+                upper_value,
+                evidence_ref_key,
+                confidence
+            )
+            VALUES (
+                $1::uuid,
+                $2::uuid,
+                $3::uuid,
+                'expression',
+                'domain',
+                'm',
+                0.0,
+                NULL,
+                'pdg-bound-1',
+                'high'
+            )
+            ON CONFLICT (
+                expression_id,
+                scope,
+                bound_kind,
+                variable_name,
+                evidence_ref_key
+            )
+            WHERE expression_id IS NOT NULL
+              AND evidence_ref_key <> ''
+            DO UPDATE SET confidence = EXCLUDED.confidence
+            RETURNING bound_id
+            """,
+            str(artifact_id),
+            str(version_id),
+            str(expression_ids[0]),
+        )
+        assert str(repeated_bound_id) == str(bound_id)
+        assert (
+            await conn.fetchval(
+                """
+                SELECT COUNT(*)
+                FROM public.artifact_validity_bounds
+                WHERE expression_id = $1::uuid
+                  AND evidence_ref_key = 'pdg-bound-1'
+                """,
+                str(expression_ids[0]),
+            )
+            == 1
+        )
+        assert await conn.fetchval(
+            """
+            SELECT confidence
+            FROM public.artifact_validity_bounds
+            WHERE bound_id = $1::uuid
+            """,
+            str(bound_id),
+        ) == "high"
+
+        source_id_map = _json_value(
+            await conn.fetchval(
+                """
+                SELECT public.physics_symbolic_write_plan_source_id_map(
+                    'physics_derivation_graph',
+                    'local-test'
+                )
+                """
+            )
+        )
+        matched = [
+            row
+            for row in source_id_map
+            if row["source_uri"] == source_uri
+            and row["source_candidate_id"] == "pdg-candidate-1"
+            and row["source_expression_id"]
+            in {"pdg-expr-source", "pdg-expr-target"}
+        ]
+        assert {row["fqdn"] for row in matched} == {artifact_fqdn}
+        assert {row["semver"] for row in matched} == {"0.1.0"}
+    finally:
+        await conn.close()
