@@ -93,6 +93,30 @@ def test_physics_symbolic_ingestion_wave0_covers_symbolic_contract() -> None:
         assert f"'{relationship_kind}'" in text
 
 
+def test_physics_symbolic_ingestion_wave0_supports_relationship_write_plan_rows() -> None:
+    text = _migration_text()
+
+    for required_fragment in (
+        "source_expression_id UUID REFERENCES public.artifact_symbolic_expressions(expression_id)",
+        "target_expression_id UUID REFERENCES public.artifact_symbolic_expressions(expression_id)",
+        "source_node_id TEXT NOT NULL DEFAULT ''",
+        "target_node_id TEXT NOT NULL DEFAULT ''",
+        "inference_rule_id TEXT NOT NULL DEFAULT ''",
+        "binding_metadata JSONB NOT NULL DEFAULT '{}'::jsonb",
+        "assumptions_json JSONB NOT NULL DEFAULT '{}'::jsonb",
+        "evidence_json JSONB NOT NULL DEFAULT '{}'::jsonb",
+        "source_kind TEXT NOT NULL DEFAULT 'manual'",
+        "'physics_derivation_graph'",
+        "CREATE INDEX IF NOT EXISTS idx_artifact_relationships_source_expression",
+        "CREATE INDEX IF NOT EXISTS idx_artifact_relationships_target_expression",
+        "CREATE INDEX IF NOT EXISTS idx_artifact_relationships_kind",
+        "CREATE INDEX IF NOT EXISTS idx_artifact_relationships_verified",
+        "source_expression_id IS NOT NULL",
+        "target_expression_id IS NOT NULL",
+    ):
+        assert required_fragment in text
+
+
 def test_physics_symbolic_ingestion_wave0_extends_document_and_coverage_surfaces() -> None:
     text = _migration_text()
 

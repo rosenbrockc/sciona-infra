@@ -83,6 +83,29 @@ def test_wave4_relationship_and_pdg_cdg_readiness_are_exposed() -> None:
         assert required_fragment in text
 
 
+def test_wave4_pdg_cdg_readiness_counts_replay_relationship_state() -> None:
+    text = _migration_text()
+
+    for required_fragment in (
+        "WITH pdg_candidates AS",
+        "WHERE s.source_system = 'physics_derivation_graph'",
+        "pdg_expression_bindings AS",
+        "JOIN public.artifact_symbolic_expressions se",
+        "pdg_relationships AS",
+        "FROM public.artifact_relationships",
+        "WHERE source_kind = 'physics_derivation_graph'",
+        "pdg_candidate_count",
+        "pdg_expression_binding_count",
+        "pdg_relationship_count",
+        "pdg_relationship_ready_count",
+        "cdg_candidate_ready_count",
+        "pdg_relationship_blocked_count",
+        "published_pdg_candidate_count",
+        "COUNT(*) FROM pdg_relationships WHERE NOT pdg_ready",
+    ):
+        assert required_fragment in text
+
+
 def test_wave4_dashboard_rpc_returns_all_sql_surfaces() -> None:
     text = _migration_text()
 
