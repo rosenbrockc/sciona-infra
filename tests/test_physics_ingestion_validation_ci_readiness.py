@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS_DIR = ROOT / "supabase" / "migrations"
 MIGRATION = (
     MIGRATIONS_DIR
-    / "20260501070000_physics_ingestion_validation_ci_readiness.sql"
+    / "20260501090000_physics_ingestion_validation_ci_source_adapter_execution_validation.sql"
 )
 
 
@@ -52,6 +52,8 @@ def test_validation_ci_readiness_runs_after_composed_readiness_surfaces() -> Non
         "20260501050000_physics_source_retrieval_backfill_readiness.sql",
         "20260501060000_physics_cdg_graph_readiness.sql",
         "20260501070000_physics_ingestion_validation_ci_readiness.sql",
+        "20260501080000_physics_source_adapter_execution_validation_readiness.sql",
+        "20260501090000_physics_ingestion_validation_ci_source_adapter_execution_validation.sql",
     ]
     positions = [migration_names.index(name) for name in required_order]
 
@@ -67,11 +69,13 @@ def test_validation_ci_readiness_composes_existing_readiness_views() -> None:
         "FROM public.physics_symbolic_publication_readiness",
         "FROM public.physics_backfill_review_publication_status_rows",
         "FROM public.physics_cdg_artifact_envelope_publication",
+        "FROM public.physics_source_adapter_execution_validation_readiness",
         "'source_retrieval_backfill'::TEXT AS readiness_family",
         "'cdg_graph'::TEXT AS readiness_family",
         "'symbolic_publication'::TEXT AS readiness_family",
         "'backfill_publication_observability'::TEXT AS readiness_family",
         "'cdg_publication'::TEXT AS readiness_family",
+        "'source_adapter_execution_validation'::TEXT AS readiness_family",
     ):
         assert required_fragment in text
 
@@ -96,6 +100,10 @@ def test_validation_ci_readiness_exposes_dashboard_counts_status_and_detail() ->
         "'review_patch_pending_row_count'",
         "'publication_ready_row_count'",
         "'validation_passed_expression_count'",
+        "'snapshot_count'",
+        "'candidate_count'",
+        "'symbolic_expression_count'",
+        "'blocker_count'",
     ):
         assert required_fragment in text
 
@@ -109,6 +117,7 @@ def test_validation_ci_readiness_has_explicit_no_data_and_blocker_logic() -> Non
         "'no_symbolic_publication_readiness_data'",
         "'no_backfill_publication_observability_data'",
         "'no_cdg_publication_readiness_data'",
+        "'no_source_adapter_execution_validation_readiness_data'",
         "CASE WHEN row_count = 0 THEN 'no_data'",
         "row_count > 0 AND ready_count = row_count AND blocked_count = 0 AND CARDINALITY(blockers) = 0",
         "COUNT(*) FILTER (WHERE backfill_ready) AS ready_count",
@@ -116,6 +125,29 @@ def test_validation_ci_readiness_has_explicit_no_data_and_blocker_logic() -> Non
         "COUNT(*) FILTER (WHERE readiness_status = 'publication_ready') AS ready_count",
         "COUNT(*) FILTER ( WHERE blocked_row_count = 0 AND review_patch_pending_row_count = 0 ) AS ready_count",
         "COUNT(*) FILTER (WHERE publication_ready) AS ready_count",
+        "COUNT(*) FILTER (WHERE source_execution_validation_ready) AS ready_count",
+    ):
+        assert required_fragment in text
+
+
+def test_source_adapter_execution_validation_family_rolls_up_counts_and_blockers() -> None:
+    text = _compact_sql(_migration_text())
+
+    for required_fragment in (
+        "source_adapter_execution_validation_rollup AS ( SELECT COUNT(*) AS row_count",
+        "COUNT(*) FILTER (WHERE NOT source_execution_validation_ready) AS blocked_count",
+        "COALESCE(SUM(snapshot_count), 0) AS snapshot_count",
+        "COALESCE(SUM(candidate_count), 0) AS candidate_count",
+        "COALESCE(SUM(symbolic_expression_count), 0) AS symbolic_expression_count",
+        "COALESCE(SUM(validation_passed_expression_count), 0) AS validation_passed_expression_count",
+        "COALESCE(SUM(blocker_count), 0) AS blocker_count",
+        "SELECT UNNEST(row_data.blockers) AS blocker FROM public.physics_source_adapter_execution_validation_readiness row_data",
+        "'source_adapter_execution_validation'::TEXT AS readiness_family",
+        "'snapshot_count', saavr.snapshot_count",
+        "'candidate_count', saavr.candidate_count",
+        "'symbolic_expression_count', saavr.symbolic_expression_count",
+        "'validation_passed_expression_count', saavr.validation_passed_expression_count",
+        "'blocker_count', saavr.blocker_count",
     ):
         assert required_fragment in text
 
