@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.heuristic_registry (
     family TEXT NOT NULL DEFAULT '',
     source_atom_fqdn TEXT NOT NULL DEFAULT '',
     uncertainty_notes TEXT[] NOT NULL DEFAULT '{}',
-    references JSONB NOT NULL DEFAULT '[]'::jsonb,
+    "references" JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
