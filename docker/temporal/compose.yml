@@ -36,7 +36,7 @@ services:
     ports:
       - "7233:7233"
     healthcheck:
-      test: ["CMD-SHELL", "temporal operator cluster health --address localhost:7233 >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "IP=$$(hostname -i | awk '{print $$1}'); temporal operator cluster health --address $$IP:7233 >/dev/null 2>&1"]
       interval: 30s
       timeout: 10s
       retries: 5

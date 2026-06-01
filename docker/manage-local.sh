@@ -202,7 +202,22 @@ ensure_sentry_checkout() {
   if [[ ! -f "$SENTRY_CHECKOUT/.env.custom" ]]; then
     cp "$ROOT_DIR/sentry/.env.custom.local.example" "$SENTRY_CHECKOUT/.env.custom"
     echo "Created $SENTRY_CHECKOUT/.env.custom from .env.custom.local.example"
+  elif cmp -s "$SENTRY_CHECKOUT/.env.custom" "$ROOT_DIR/sentry/.env.custom.example"; then
+    cp "$ROOT_DIR/sentry/.env.custom.local.example" "$SENTRY_CHECKOUT/.env.custom"
+    echo "Replaced $SENTRY_CHECKOUT/.env.custom with .env.custom.local.example"
   fi
+}
+
+sentry_install_shell() {
+  if [[ -n "${SCIONA_SENTRY_BASH:-}" ]]; then
+    printf '%s' "$SCIONA_SENTRY_BASH"
+    return
+  fi
+  if [[ -x /opt/homebrew/bin/bash ]]; then
+    printf '%s' /opt/homebrew/bin/bash
+    return
+  fi
+  printf '%s' bash
 }
 
 ensure_sentry_installed() {
@@ -216,12 +231,12 @@ MSG
     fi
     (
       cd "$SENTRY_CHECKOUT"
-      ./install.sh --no-user-prompt
+      REPORT_SELF_HOSTED_ISSUES=0 "$(sentry_install_shell)" ./install.sh --skip-user-creation
     )
   elif [[ $INSTALL_SENTRY -eq 1 ]]; then
     (
       cd "$SENTRY_CHECKOUT"
-      ./install.sh --no-user-prompt
+      REPORT_SELF_HOSTED_ISSUES=0 "$(sentry_install_shell)" ./install.sh --skip-user-creation
     )
   fi
 }
@@ -231,6 +246,12 @@ run_sentry_compose() {
   compose_file="$(sentry_compose_file)"
   (
     cd "$SENTRY_CHECKOUT"
+    set -a
+    # shellcheck disable=SC1091
+    source ./.env
+    # shellcheck disable=SC1091
+    source ./.env.custom
+    set +a
     docker compose -f "$compose_file" "$@"
   )
 }
@@ -280,6 +301,9 @@ ensure_local_networks
 
 case "$COMMAND" in
   up)
+    if [[ ${#PASSTHROUGH[@]} -eq 0 ]]; then
+      PASSTHROUGH=(--detach)
+    fi
     run_core_stacks
     handle_sentry
     ;;

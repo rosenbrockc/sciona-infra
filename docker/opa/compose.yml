@@ -1,6 +1,6 @@
 services:
   opa:
-    image: openpolicyagent/opa:0.67.0-rootless
+    image: openpolicyagent/opa:1.12.1-debug
     container_name: sciona-opa
     restart: always
     command:
@@ -14,7 +14,7 @@ services:
     ports:
       - "8181:8181"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:8181/health?plugins >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8181/health?plugins >/dev/null 2>&1"]
       interval: 30s
       timeout: 5s
       retries: 5
