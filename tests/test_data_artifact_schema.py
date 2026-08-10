@@ -25,3 +25,17 @@ def test_matcher_migration_is_byte_identical() -> None:
     relative = Path("supabase/migrations/20260808000000_data_artifact_catalog.sql")
 
     assert (root / relative).read_bytes() == (root.parent / "sciona-matcher" / relative).read_bytes()
+
+
+def test_provider_atom_compatibility_uses_stable_fqdn() -> None:
+    root = Path(__file__).resolve().parents[1]
+    relative = Path(
+        "supabase/migrations/20260809000000_data_compatibility_provider_atoms.sql"
+    )
+    sql = (root / relative).read_text(encoding="utf-8")
+
+    assert "consumer_atom_id UUID REFERENCES public.atoms(atom_id)" in sql
+    assert "consumer_atom_version_id UUID" in sql
+    assert "consumer_fqdn TEXT NOT NULL" in sql
+    assert "num_nonnulls(consumer_artifact_id, consumer_atom_id) = 1" in sql
+    assert (root / relative).read_bytes() == (root.parent / "sciona-matcher" / relative).read_bytes()
